@@ -1,0 +1,20 @@
+version: '3.6'
+
+services:
+    app:
+        build:
+            context: ./
+            dockerfile: app/Dockerfile
+        ports:
+            - 8899:8899
+            - 6006:6006
+        volumes:
+            - ./app/:/app/
+        tty: true
+        environment:
+            - LOGGER_NAME=app_logger
+        container_name: selfplay
+        cap_add:
+            - SYS_PTRACE
+        
+
