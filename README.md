@@ -67,7 +67,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-<img src="images/diagram.png" alt="SIMPLE Diagram" height="300">
+<img src="images/diagram.png" alt="SIMPLE Diagram" width='100%'>
 
 This project allows you to train AI agents on custom-built multiplayer environments, through self-play reinforcement learning.
 
