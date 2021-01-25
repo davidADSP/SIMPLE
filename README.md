@@ -29,7 +29,6 @@
 </p>
 <br>
 
----
 
 <!-- TABLE OF CONTENTS -->
 <details open="open">
@@ -114,6 +113,8 @@ This is a quick tutorial to allow you to start using the two entrypoints into th
 
 *TODO - I'll be adding more substantial documentation for both of these entrypoints in due course! For now, descriptions of each command line argument can be found at the bottom of the files themselves.*
 
+---
+<!-- QUICKSTART -->
 ### Quickstart
 
 #### `test.py` 
