@@ -73,7 +73,7 @@ This project allows you to train AI agents on custom-built multiplayer environme
 
 It implements [Proximal Policy Optimisation (PPO)](https://openai.com/blog/openai-baselines-ppo/), with a built-in wrapper around the multiplayer environments that handles the loading and action-taking of opponents in the environment. The wrapper delays the reward back to the PPO agent, until all opponents have taken their turn. In essence, it converts the multiplayer environment into a single-player environment that is constantly evolving as new versions of the policy network are added to the network bank.
 
-To learn more, check out the accompanying [blog post](https://medium.com/p/247d0b440717/edit).
+To learn more, check out the accompanying [blog post](https://medium.com/applied-data-science/how-to-train-ai-agents-to-play-multiplayer-games-using-self-play-deep-reinforcement-learning-247d0b440717).
 
 This guide explains how to get started with the repo, add new custom environments and tune the hyperparameters of the system.
 
