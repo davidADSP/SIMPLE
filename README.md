@@ -95,6 +95,7 @@ Install [Docker](https://github.com/davidADSP/SIMPLE/issues) and [Docker Compose
 1. Clone the repo
    ```sh
    git clone https://github.com/davidADSP/SIMPLE.git
+   cd SIMPLE
    ```
 2. Build the image and 'up' the container.
    ```sh
