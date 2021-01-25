@@ -284,4 +284,4 @@ There are many repositories and blogs that have helped me to put together this r
 [license-shield]: https://img.shields.io/github/license/davidADSP/SIMPLE.svg?style=for-the-badge
 [license-url]: https://github.com/davidADSP/SIMPLE/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/davidADSP
+[linkedin-url]: https://linkedin.com/in/davidtfoster
