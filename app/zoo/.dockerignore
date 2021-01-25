@@ -1,7 +1,6 @@
 *
+!.dockerignore
 !.gitignore
 !pretrained
 !pretrained/*/
 !pretrained/*/*
-!tmp
-!.dockerignore
