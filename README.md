@@ -171,7 +171,7 @@ To monitor training, you can start Tensorboard with the following command:
 
 Navigate to `localhost:6006` in a browser to view the output.
 
-In the `/zoo/pretrained/` folder there is a pre-trained `/<game>/best_model.zip` for each game, that can be copied up a directory if you want to test playing against a pre-trained agent right away.
+In the `/zoo/pretrained/` folder there is a pre-trained `/<game>/best_model.zip` for each game, that can be copied up a directory (e.g. to `/zoo/sushigo/best_model.zip`) if you want to test playing against a pre-trained agent right away.
 
 ---
 <!-- CUSTOM ENVIRONMENTS -->
