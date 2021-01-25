@@ -16,14 +16,14 @@ def selfplay_wrapper(env):
             super(SelfPlayEnv, self).__init__(verbose)
             self.opponent_type = opponent_type
             self.opponent_models = load_all_models(self)
-            self.best_model_name = get_best_model_name()
+            self.best_model_name = get_best_model_name(self.name)
 
         def setup_opponents(self):
             if self.opponent_type == 'rules':
                 self.opponent_agent = Agent('rules')
             else:
                 # incremental load of new model
-                best_model_name = get_best_model_name()
+                best_model_name = get_best_model_name(self.name)
                 if self.best_model_name != best_model_name:
                     self.opponent_models.append(load_model(self, best_model_name ))
                     self.best_model_name = best_model_name

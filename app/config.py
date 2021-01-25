@@ -8,4 +8,4 @@ DISABLED = 50
 LOGDIR = "logs"
 RESULTSPATH = 'viz/results.csv'
 TMPMODELDIR = "zoo/tmp"
-MODELDIR = "zoo/ppo"
+MODELDIR = "zoo"

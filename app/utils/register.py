@@ -20,13 +20,13 @@ def get_environment(env_name):
 
 def get_network_arch(env_name):
     if env_name in ('tictactoe'):
-        from models.tictactoe.model import CustomPolicy
+        from models.tictactoe.models import CustomPolicy
         return CustomPolicy
     elif env_name in ('connect4'):
-        from models.connect4.model import CustomPolicy
+        from models.connect4.models import CustomPolicy
         return CustomPolicy
     elif env_name in ('sushigo'):
-        from models.sushigo.model import CustomPolicy
+        from models.sushigo.models import CustomPolicy
         return CustomPolicy
     else:
         raise Exception(f'No model architectures found for {env_name}')

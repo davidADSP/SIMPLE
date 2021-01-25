@@ -28,9 +28,15 @@ def main(args):
 
   rank = MPI.COMM_WORLD.Get_rank()
 
+  model_dir = os.path.join(config.MODELDIR, args.env_name)
+
   if rank == 0:
+    try:
+      os.makedirs(model_dir)
+    except:
+      pass
     if args.reset:
-      reset_files()
+      reset_files(model_dir)
     logger.configure(config.LOGDIR)
   else:
     logger.configure(format_strs=[])
@@ -66,12 +72,12 @@ def main(args):
   }
 
   
-  if args.reset or not os.path.exists('zoo/ppo/best_model.zip'):
+  if args.reset or not os.path.exists(os.path.join(model_dir, 'best_model.zip')):
     logger.info('\nLoading a base PPO agent to train...')
     model = PPO1(CustomPolicy , env, **params)
   else:
     logger.info('\nLoading the best_model.zip PPO agent to continue training...')
-    model = PPO1.load(f'zoo/ppo/best_model.zip', env, **params)
+    model = PPO1.load(os.path.join(model_dir, 'best_model.zip'), env, **params)
 
   #Callbacks
   logger.info('\nSetting up the selfplay evaluation environment opponents...')
@@ -100,7 +106,7 @@ def main(args):
     callback_args['callback_on_new_best'] = eval_actual_callback
     
   # Evaluate the agent against previous versions
-  eval_callback = SelfPlayCallback(args.opponent_type, args.threshold, **callback_args)
+  eval_callback = SelfPlayCallback(args.opponent_type, args.threshold, args.env_name, **callback_args)
 
   logger.info('\nSetup complete - commencing learning...\n')
 
@@ -140,7 +146,7 @@ def cli() -> None:
             , help="How many timesteps before the agent is evaluated?")
   parser.add_argument("--n_eval_episodes", "-ne",  type = int, default = 500
             , help="How many episodes should each actor contirbute to the evaluation of the agent")
-  parser.add_argument("--threshold", "-t",  type = float, default = 0.5
+  parser.add_argument("--threshold", "-t",  type = float, default = 0.2
             , help="What score must the agent achieve during evaluation to 'beat' the previous version?")
   parser.add_argument("--gamma", "-g",  type = float, default = 0.99
             , help="The value of gamma in PPO")

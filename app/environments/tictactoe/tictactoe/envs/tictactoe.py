@@ -144,6 +144,8 @@ class TicTacToeEnv(gym.Env):
 
         if self.verbose:
             logger.debug(f'\nObservation: \n{self.observation}')
+        
+        if not self.done:
             logger.debug(f'\nLegal actions: {[i for i,o in enumerate(self.legal_actions) if o != 0]}')
 
 

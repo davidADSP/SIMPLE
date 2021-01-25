@@ -10,6 +10,8 @@ from shutil import rmtree
 from stable_baselines.ppo1 import PPO1
 from stable_baselines.common.policies import MlpPolicy
 
+from utils.register import get_network_arch
+
 import config
 
 from stable_baselines import logger
@@ -38,7 +40,7 @@ def write_results(players, game, games, episode_length):
 
 def load_model(env, name = None):
     if name:
-        filename = os.path.join(config.MODELDIR, name)
+        filename = os.path.join(config.MODELDIR, env.name, name)
         if os.path.exists(filename):
             logger.info(f'Loading {name}')
             cont = True
@@ -66,7 +68,7 @@ def load_model(env, name = None):
 
 
 def load_all_models(env):
-    modellist = [f for f in os.listdir(config.MODELDIR) if f.startswith("_model")]
+    modellist = [f for f in os.listdir(os.path.join(config.MODELDIR, env.name)) if f.startswith("_model")]
     modellist.sort()
     models = [load_model(env)]
     for model_name in modellist:
@@ -74,8 +76,8 @@ def load_all_models(env):
     return models
 
 
-def get_best_model_name():
-    modellist = [f for f in os.listdir(config.MODELDIR) if f.startswith("_model")]
+def get_best_model_name(env_name):
+    modellist = [f for f in os.listdir(os.path.join(config.MODELDIR, env_name)) if f.startswith("_model")]
     
     if len(modellist)==0:
         filename = None
@@ -100,7 +102,7 @@ def get_model_stats(filename):
     return generation, timesteps, best_rules_based, best_reward
 
 
-def reset_files():
+def reset_files(model_dir):
     try:
         filelist = [ f for f in os.listdir(config.LOGDIR) if f not in ['.gitignore']]
         for f in filelist:
@@ -113,7 +115,7 @@ def reset_files():
         
         open(os.path.join(config.LOGDIR, 'log.txt'), 'a').close()
     
-        filelist = [ f for f in os.listdir(config.MODELDIR) if f not in ['.gitignore']]
+        filelist = [ f for f in os.listdir(model_dir) if f not in ['.gitignore']]
         for f in filelist:
             os.remove(os.path.join(config.MODELDIR, f))
     except:

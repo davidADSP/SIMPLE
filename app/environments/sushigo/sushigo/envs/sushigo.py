@@ -350,7 +350,7 @@ class SushiGoEnv(gym.Env):
         for p in self.players:
             logger.debug(f'\nPlayer {p.id}\'s hand')
             if p.hand.size() > 0:
-                logger.debug('  '.join([ str(card.order) + ': ' + card.symbol + ': ' + str(card.id) for card in sorted(p.hand.cards, key=lambda x: x.id)]))
+                logger.debug('  '.join([ str(card.order) + ': ' + card.symbol for card in sorted(p.hand.cards, key=lambda x: x.id)]))
             else:
                 logger.debug('Empty')
 
@@ -365,6 +365,8 @@ class SushiGoEnv(gym.Env):
 
         if self.verbose:
             logger.debug(f'\nObservation: \n{[i if o == 1 else (i,o) for i,o in enumerate(self.observation) if o != 0]}')
+        
+        if not self.done:
             logger.debug(f'\nLegal actions: {[i for i,o in enumerate(self.legal_actions) if o != 0]}')
 
         if self.done:
@@ -377,4 +379,4 @@ class SushiGoEnv(gym.Env):
 
 
     def rules_move(self):
-        pass
+        raise Exception('Rules based agent is not yet implemented for Sushi Go!')

@@ -8,10 +8,10 @@ BEST=''
 fi
 
 rm ./app/viz/results.csv
-declare -a FILES=("./app/zoo/ppo/best_model.zip")
+declare -a FILES=("./app/zoo/$6/best_model.zip")
 
 
-FILES+=(./app/zoo/ppo/_model*.zip)
+FILES+=(./app/zoo/$6/_model*.zip)
 
 echo "${FILES[@]}"
 

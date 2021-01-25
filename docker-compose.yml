@@ -11,8 +11,6 @@ services:
         volumes:
             - ./app/:/app/
         tty: true
-        environment:
-            - LOGGER_NAME=app_logger
         container_name: selfplay
         cap_add:
             - SYS_PTRACE

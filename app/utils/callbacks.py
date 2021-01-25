@@ -11,10 +11,11 @@ from utils.files import get_best_model_name, get_model_stats
 import config
 
 class SelfPlayCallback(EvalCallback):
-  def __init__(self, opponent_type, threshold, *args, **kwargs):
+  def __init__(self, opponent_type, threshold, env_name, *args, **kwargs):
     super(SelfPlayCallback, self).__init__(*args, **kwargs)
     self.opponent_type = opponent_type
-    self.generation, self.base_timesteps, pbmr, bmr = get_model_stats(get_best_model_name())
+    self.model_dir = os.path.join(config.MODELDIR, env_name)
+    self.generation, self.base_timesteps, pbmr, bmr = get_model_stats(get_best_model_name(env_name))
 
     #reset best_mean_reward because this is what we use to extract the rewards from the latest evaluation by each agent
     self.best_mean_reward = -np.inf
@@ -63,9 +64,9 @@ class SelfPlayCallback(EvalCallback):
             av_rules_based_reward_str = str(0)
           
           source_file = os.path.join(config.TMPMODELDIR, f"best_model.zip") # this is constantly being written to - not actually the best model
-          target_file = os.path.join(config.MODELDIR, f"_model_{generation_str}_{av_rules_based_reward_str}_{av_rewards_str}_{str(self.base_timesteps + self.num_timesteps)}_.zip")
+          target_file = os.path.join(self.model_dir,  f"_model_{generation_str}_{av_rules_based_reward_str}_{av_rewards_str}_{str(self.base_timesteps + self.num_timesteps)}_.zip")
           copyfile(source_file, target_file)
-          target_file = os.path.join(config.MODELDIR, f"best_model.zip")
+          target_file = os.path.join(self.model_dir,  f"best_model.zip")
           copyfile(source_file, target_file)
 
         # if playing against a rules based agent, update the global best reward to the improved metric
