@@ -16,11 +16,10 @@
   <!-- <h3 align="center">SIMPLE</h3> -->
 
   <p align="center">
-    <!-- Selfplay In MultiPlayer Environments
-    <br /> -->
+    Selfplay In MultiPlayer Environments
+    <!-- <br /> -->
     <!-- <a href="https://github.com/davidADSP/SIMPLE"><strong>Explore the docs »</strong></a> -->
-    <!-- <br />
-    <br /> -->
+    <br />
     <!-- <a href="https://github.com/davidADSP/SIMPLE">View Demo</a> -->
     ·
     <a href="https://github.com/davidADSP/SIMPLE/issues">Report Bug</a>
@@ -28,8 +27,9 @@
     <a href="https://github.com/davidADSP/SIMPLE/issues">Request Feature</a>
   </p>
 </p>
+<br>
 
-
+---
 
 <!-- TABLE OF CONTENTS -->
 <details open="open">
@@ -62,11 +62,13 @@
 </details>
 
 
+<br>
 
+---
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-<img src="images/diagram.png" alt="SIMPLE Diagram" height="200">
+<img src="images/diagram.png" alt="SIMPLE Diagram" height="300">
 
 This project allows you to train AI agents on custom-built multiplayer environments, through self-play reinforcement learning.
 
@@ -78,7 +80,9 @@ This guide explains how to get started with the repo, add new custom environment
 
 Have fun!
 
+---
 <!-- GETTING STARTED -->
+
 ## Getting Started
 
 To get a local copy up and running, follow these simple steps.
@@ -102,6 +106,7 @@ Install [Docker](https://github.com/davidADSP/SIMPLE/issues) and [Docker Compose
    bash ./scripts/install_env sushigo
    ```
 
+---
 <!-- TUTORIAL -->
 ## Tutorial
 
@@ -152,6 +157,7 @@ You can continue training the agent by dropping the `-r` reset flag from the `tr
 
 Congratulations, you've just completed one training cycle for the game Sushi Go! The PPO agent will now have to work out a way to beat the model it has just created...
 
+---
 <!-- TENSORBOARD -->
 ### Tensorboard
 
@@ -165,6 +171,7 @@ Navigate to `localhost:6006` in a browser to view the output.
 
 In the `/zoo/pretrained/` folder there is a pre-trained `/<game>/best_model.zip` for each game, that can be copied up a directory if you want to test playing against a pre-trained agent right away.
 
+---
 <!-- CUSTOM ENVIRONMENTS -->
 ### Custom Environments
 
@@ -206,6 +213,7 @@ The `legal_actions` function returns a numpy vector of the same length as the ac
 
 Please refer to existing environments for examples of how to implement each method.
 
+---
 <!-- Parallelisation -->
 ### Parallelisation
 
@@ -217,13 +225,14 @@ For example to run 10 parallel threads that contribute games to the current iter
   docker-compose exec app mpirun -np 10 python3 train.py -e sushigo 
   ```
 
+---
 <!-- ROADMAP -->
 ## Roadmap
 
 See the [open issues](https://github.com/davidADSP/SIMPLE/issues) for a list of proposed features (and known issues).
 
 
-
+---
 <!-- CONTRIBUTING -->
 ## Contributing
 
@@ -236,14 +245,14 @@ Contributions are what make the open source community such an amazing place to b
 5. Open a Pull Request
 
 
-
+---
 <!-- LICENSE -->
 ## License
 
 Distributed under the GPL-3.0. See `LICENSE` for more information.
 
 
-
+---
 <!-- CONTACT -->
 ## Contact
 
@@ -252,7 +261,7 @@ David Foster - [@davidADSP](https://twitter.com/davidADSP) - david@adsp.ai
 Project Link: [https://github.com/davidADSP/SIMPLE](https://github.com/davidADSP/SIMPLE)
 
 
-
+---
 <!-- ACKNOWLEDGEMENTS -->
 ## Acknowledgements
 
@@ -260,7 +269,7 @@ There are many repositories and blogs that have helped me to put together this r
 
 * [David Ha - Slime Volleyball Gym](https://github.com/hardmaru/slimevolleygym)
 
-
+---
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [contributors-shield]: https://img.shields.io/github/contributors/davidADSP/SIMPLE.svg?style=for-the-badge
