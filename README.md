@@ -103,7 +103,7 @@ Install [Docker](https://github.com/davidADSP/SIMPLE/issues) and [Docker Compose
    ```
 3. Choose an environment to install in the container (`tictactoe`, `connect4` and 3-player `sushigo` are currently implemented)
    ```sh
-   bash ./scripts/install_env sushigo
+   bash ./scripts/install_env.sh sushigo
    ```
 
 ---
