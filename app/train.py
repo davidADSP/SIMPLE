@@ -1,3 +1,5 @@
+# docker-compose exec app python3 train.py -r -e butterfly
+
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 

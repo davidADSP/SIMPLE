@@ -1,6 +1,7 @@
 
 import gym
 import numpy as np
+import random
 
 import config
 
@@ -16,68 +17,92 @@ class ButterflyEnv(gym.Env):
         self.name = 'butterfly'
         self.n_players = 3
 
+        self.board_size = 7
+        self.squares = self.board_size * self.board_size
+
         self.tile_types = 11
         
         self.max_score = 100
         
-        self.total_positions = self.n_players * 2 + 2
+        self.total_positions = self.squares + self.n_players + 1
 
+        self.set_contents()
+        self.nets = [5,7,16, 24, 32, 41, 43]
+        self.total_tiles = sum([x['count'] for x in self.contents])
+
+        self.action_space = gym.spaces.Discrete(self.squares  * 2)
+        self.observation_space = gym.spaces.Box(0, 1, (self.total_positions * self.total_tiles + self.squares + 4 + self.n_players + self.action_space.n ,))
+        self.verbose = verbose
+
+
+    def set_contents(self):
         self.contents = []
 
-        for colour in ['red', 'blue', 'green', 'yellow']:
-            for value in [1,2,3,4,5]:
+        for colour in ['R','B','G','Y']:
+            for value in range(1, 6):
+                self.contents.append({'tile': Butterfly, 'info': {'name': f'{colour}{value}butterfly', 'colour': colour, 'value': value}, 'count': 2} )
+            self.contents.append({'tile': Butterfly, 'info': {'name': f'{colour}Xbutterfly', 'colour': colour, 'value': 0}, 'count': 1} )
 
+        self.contents.append({'tile': Flower, 'info': {'name': 'flower'}, 'count':  13})
 
-        self.contents = [
-          {'card': Butterfly, 'info': {'name': 'redbutterfly', 'colour': 'red'}, 'count': 11}  #0 
-           ,  {'card': Butterfly, 'info': {'name': 'bluebutterfly', 'colour': 'blue'}, 'count':  11} #1 
-        ,  {'card': Butterfly, 'info': {'name': 'greenbutterfly', 'colour': 'green'}, 'count':  11}  #2   
-          ,  {'card': Butterfly, 'info': {'name': 'yellowbutterfly', 'colour': 'yellow'}, 'count':  11}  #3 
-          ,  {'card': Flower, 'info': {'name': 'flower'}, 'count':  13} #4  
-           ,  {'card': Dragonfly, 'info': {'name': 'dragonfly'}, 'count':  9} #5 
-           ,  {'card': LightningBug,  'info': {'name': 'lightningbug'}, 'count':  9} #6 
-           ,  {'card': Cricket, 'info': {'name': 'cricket'}, 'count':  9} #7 
-          ,  {'card': Bee, 'info': {'name': 'bee'}, 'count':  6}  #8 
-          ,  {'card': Honeycomb, 'info': {'name': 'honeycomb',}, 'count':  6} #9  
-          ,  {'card': Wasp, 'info': {'name': 'wasp',}, 'count':  4} #10  
-        ]
+        for value in range(1,10):
+            self.contents.append({'tile': Dragonfly, 'info': {'name': 'dragonfly', 'value': value}, 'count':  1})
 
-        self.total_cards = sum([x['count'] for x in self.contents])
+        for value in range(1,10):
+            self.contents.append({'tile': LightningBug,  'info': {'name': 'lightningbug', 'value': value}, 'count':  1})
 
-        self.action_space = gym.spaces.Discrete(self.card_types + self.card_types * self.card_types)
-        self.observation_space = gym.spaces.Box(0, 1, (self.total_cards * self.total_positions + self.n_players + self.action_space.n ,))
-        self.verbose = verbose
+        for value in range(1,10):
+            self.contents.append({'tile': Cricket, 'info': {'name': 'cricket', 'value': value}, 'count':  1})
+
+        self.contents.append({'tile': Bee, 'info': {'name': 'bee'}, 'count':  6})
+
+        for value in range(10,16):
+            self.contents.append({'tile': Honeycomb, 'info': {'name': 'honeycomb', 'value': value}, 'count':  1})
+        
+        for value in range(-4,-8, -1):
+            self.contents.append({'tile': Wasp, 'info': {'name': 'wasp', 'value': value}, 'count':  1})
 
         
     @property
     def observation(self):
-        obs = np.zeros(([self.total_positions, self.total_cards]))
+        obs = np.zeros(([self.total_positions, self.total_tiles]))
         player_num = self.current_player_num
-        hands_seen = 0
+        positions_seen = 0
+
+        for s, tile in enumerate(self.board.tiles):
+            if tile is not None:
+                obs[s][tile.id] = 1
 
         for i in range(self.n_players):
             player = self.players[player_num]
 
-            if self.turns_taken >= hands_seen:
-                for card in player.hand.cards:
-                    obs[i*2][card.id] = 1
-                
-            for card in player.position.cards:
-                obs[i*2+1][card.id] = 1
+            for tile in player.position.tiles:
+                obs[self.squares + i][tile.id] = 1
 
             player_num = (player_num + 1) % self.n_players
-            hands_seen += 1
 
-        if self.turns_taken >= self.n_players - 1:
-            for card in self.deck.cards:
-                obs[6][card.id] = 1
+        for tile in self.drawbag.tiles:
+            obs[-1][tile.id] = 1
 
-        for card in self.discard.cards:
-            obs[7][card.id] = 1
-        
         ret = obs.flatten()
-        for p in self.players:
-            ret = np.append(ret, p.score / self.max_score)
+
+        hudson_obs = np.zeros((self.squares, ))
+        hudson_obs[self.board.hudson] = 1
+
+        ret = np.append(ret, hudson_obs)
+
+        hudson_facing_obs = np.zeros((4, ))
+        for i, x in enumerate(['U','D','L','R']):
+            if self.board.hudson_facing == x:
+                hudson_facing_obs[i] = 1
+
+        ret = np.append(ret, hudson_facing_obs)
+
+        player_num = self.current_player_num
+        for i in range(self.n_players):
+            player = self.players[player_num]
+            ret = np.append(ret, player.score / self.max_score)
+            player_num = (player_num + 1) % self.n_players
 
         ret = np.append(ret, self.legal_actions)
 
@@ -85,17 +110,49 @@ class ButterflyEnv(gym.Env):
 
     @property
     def legal_actions(self):
-        legal_actions = np.zeros(self.card_types + self.card_types * self.card_types)
-        hand = self.current_player.hand.cards
+        legal_actions = np.zeros(self.action_space.n)
 
-        for i in range(len(hand)):
-            legal_actions[hand[i].order] = 1
-            if 'chopsticks' in [x.type for x in self.current_player.position.cards]:
-                for j in range(i+1, len(hand)):
-                    legal_actions[self.card_types + (hand[i].order * self.card_types) + hand[j].order] = 1
-                    legal_actions[self.card_types + (hand[j].order * self.card_types) + hand[i].order] = 1
-        
-        
+        # UP / DOWN
+        for factor in [-1,1]:
+            if (factor == -1 and self.board.hudson_facing == 'D') or (factor == 1 and self.board.hudson_facing == 'U'):
+                pass
+            else:
+                current_square = self.board.hudson
+                found_net = False
+                for i in range(self.board_size):
+                    current_square = current_square + factor * self.board_size
+                    if 0 <= current_square < self.squares:
+                        if self.board.tiles[current_square] is not None:
+                            legal_actions[current_square] = 1
+                            if found_net:
+                                legal_actions[current_square + self.squares] = 1
+                        else:
+                            if self.board.nets[current_square] == 1:
+                                found_net = True
+                    else:
+                        break
+
+        # LEFT / RIGHT
+        for factor in [-1,1]:
+            if (factor == -1 and self.board.hudson_facing == 'R') or (factor == 1 and self.board.hudson_facing == 'L'):
+                pass
+            else:
+                current_square = self.board.hudson
+                found_net = False
+                for i in range(self.board_size):
+                    current_square = current_square + factor
+                    if (factor == 1 and current_square % self.board_size != 0) or (factor == -1 and current_square % self.board_size != self.board_size - 1) :
+                        if self.board.tiles[current_square] is not None:
+                            legal_actions[current_square] = 1
+                            if found_net:
+                                legal_actions[current_square + self.squares] = 1
+                        else:
+                            if self.board.nets[current_square] == 1:
+                                found_net = True
+                    else:
+                        break
+
+
         return legal_actions
 
 
@@ -104,7 +161,7 @@ class ButterflyEnv(gym.Env):
 
     def score_game(self):
         reward = [0.0] * self.n_players
-        scores = [p.score for p in self.players]
+        scores = [p.position.score for p in self.players]
         best_score = max(scores)
         worst_score = min(scores)
         winners = []
@@ -124,137 +181,36 @@ class ButterflyEnv(gym.Env):
         return reward
 
 
-    def get_limits(self, counts, type):
-        counts = np.array(counts, dtype=np.float)
-        if type == 'max':
-            type_counts = np.nanmax(counts)
-        else:
-            type_counts = np.nanmin(counts)
-
-        counts_winners = []
-
-        for i, m in enumerate(counts):
-            if m == type_counts:
-                counts_winners.append(i)
-                
-        return counts_winners
-
-
-    def score_puddings(self):
-        logger.debug('\nPudding counts...')
-
-        puddings = []
-        for p in self.players:
-            puddings.append(len([card for card in p.position.cards if card.type == 'pudding']))
-        
-        logger.debug(f'Puddings: {puddings}')
-
-        pudding_winners = self.get_limits(puddings, 'max')
-
-        for i in pudding_winners:
-            self.players[i].score += 6 // len(pudding_winners)
-            logger.debug(f'Player {self.players[i].id} 1st place puddings: {6 // len(pudding_winners)}')
-        
-        pudding_losers = self.get_limits(puddings, 'min')
-
-        for i in pudding_losers:
-            self.players[i].score -= 6 // len(pudding_losers)
-            logger.debug(f'Player {self.players[i].id} last place puddings: {-6 // len(pudding_losers)}')
-
-
-
-    def score_maki(self, maki):
-        logger.debug('\nMaki counts...')
-        logger.debug(f'Maki: {maki}')
-
-        maki_winners = self.get_limits(maki, 'max')
-
-        for i in maki_winners:
-            self.players[i].score += 6 // len(maki_winners)
-            maki[i] = None #mask out the winners
-            logger.debug(f'Player {self.players[i].id} 1st place maki: {6 // len(maki_winners)}')
-        
-        if len(maki_winners) == 1:
-            #now get second place as winners are masked with None
-            maki_winners = self.get_limits(maki, 'max')
-
-            for i in maki_winners:
-                self.players[i].score += 3 // len(maki_winners)
-                logger.debug(f'Player {self.players[i].id} 2nd place maki: {3 // len(maki_winners)}')
-
-
-    def score_round(self):
-
-        maki = [0] * self.n_players
-        
-        for i, p in enumerate(self.players):
-            count = {'tempura': 0, 'sashimi': 0, 'dumpling': 0}
-            for card in p.position.cards:
-                if card.type in ('tempura', 'sashimi', 'dumpling'):
-                    count[card.type] += 1
-                elif card.type == 'maki':
-                    maki[i] += card.value
-                elif card.type == 'nigiri':
-                    if card.played_on_wasabi:
-                        p.score += 3 * card.value
-                    else:
-                        p.score += card.value
-
-            p.score += (count['tempura'] // 2) * 5
-            p.score += (count['sashimi'] // 3) * 10
-            p.score += min(15, (count['dumpling'] * (count['dumpling'] + 1) ) // 2)
-        
-        self.score_maki(maki)
-
-
     @property
     def current_player(self):
         return self.players[self.current_player_num]
 
     def convert_action(self, action):
-        if action < self.card_types:
-            return False, action, None
+        if action < self.squares:
+            return False, action
         else:
-            action = action - self.card_types
-            first_card = action // self.card_types
-            second_card = action % self.card_types
-            return True, first_card, second_card
+            action = action - self.squares
+            return True, action
 
 
-    def pickup_chopsticks(self, player):
-        logger.debug(f'Player {player.id} picking up chopsticks')
-        chopsticks = player.position.pick('chopsticks')
-        player.hand.add([chopsticks])
+    def choose_net_tile(self):
+        logger.debug(f'Player {self.current_player.id} choosing extra tile using net')
+        self.current_player.position.add(self.drawbag.draw(1))
 
-    def play_card(self, card_num, player):
+    def choose_tile(self, square):
+        tile = self.board.remove(square)
+        if tile is None:
+            logger.debug(f"Player {self.current_player.id} trying to pick tile from square {square} but doesn't exist!")
+            raise Exception('tile not found')
 
-        card_name = self.contents[card_num]['info']['name']
-        card = player.hand.pick(card_name)
-        if card is None:
-            logger.debug(f"Player {player.id} trying to play {card_num} but doesn't exist!")
-            raise Exception('Card not found')
-
-        logger.debug(f"Player {player.id} playing {str(card.order) + ': ' + card.symbol + ': ' + str(card.id)}")
-        if card.type == 'nigiri':
-            for c in player.position.cards:
-                if c.type == 'wasabi' and c.played_upon == False:
-                    c.played_upon = True
-                    card.played_on_wasabi = True
-                    break
-
-        player.position.add([card])
+        logger.debug(f"Player {self.current_player.id} picking {tile.symbol}")
+        self.current_player.position.add([tile])
 
 
-    def switch_hands(self):
-        logger.debug(f'\nSwitching hands...')
-        playernhand = self.players[-1].hand
+    def place_hudson(self):
+        self.board.hudson = random.randint(0, self.squares - 1)
+        self.board.hudson_facing = random.choice(['U', 'D', 'L', 'R'])
 
-        for i in range(self.n_players - 1, -1, -1):
-            if i > 0:
-                self.players[i].hand = self.players[i-1].hand
-
-
-        self.players[0].hand = playernhand
 
 
     def step(self, action):
@@ -268,74 +224,67 @@ class ButterflyEnv(gym.Env):
             reward[self.current_player_num] = -1
             done = True
 
-        #play the card(s)
+        
         else:
-            self.action_bank.append(action)
+            # pick the tile and optional bonus tile
+            net, square = self.convert_action(action)
+            self.choose_tile(square)
 
-            if len(self.action_bank) == self.n_players:
-                logger.debug(f'\nThe chosen cards are now played simultaneously')
-                for player_num, action in enumerate(self.action_bank):
-                    player = self.players[player_num]
+            if net:
+                self.choose_net_tile()
 
-                    pickup_chopsticks, first_card, second_card = self.convert_action(action)
-                    self.play_card(first_card, player)
-
-                    if pickup_chopsticks:
-                        self.pickup_chopsticks(player)
-                        self.play_card(second_card, player)
-
-                self.action_bank = []
-                self.switch_hands()
+            # move and turn hudson
+            if 0 < square - self.board.hudson < self.board_size:
+                self.board.hudson_facing = 'R'
+            elif -self.board_size < square - self.board.hudson < 0 :
+                self.board.hudson_facing = 'L'
+            elif square > self.board.hudson:
+                self.board.hudson_facing = 'D'
+            elif square < self.board.hudson:
+                self.board.hudson_facing = 'U'
             
+            self.board.hudson = square
+
+
             self.current_player_num = (self.current_player_num + 1) % self.n_players
 
-            if self.current_player_num == 0:
-                self.turns_taken += 1
+            self.turns_taken += 1
 
-            if self.turns_taken == self.cards_per_player:
-                self.score_round()
+            if sum(self.legal_actions) == 0:
+                reward = self.score_game()
+                done = True
 
-                if self.round >= self.n_rounds:
-                    self.score_puddings()
-                    reward = self.score_game()
-                    done = True
-                else:
-                    self.render()
-                    self.reset_round()
 
         self.done = done
 
         return self.observation, reward, done, {}
 
-    def reset_round(self):
-
-        for p in self.players:
-            self.discard.add([x for x in p.position.cards if x.type != 'pudding'])
-            puddings = [x for x in p.position.cards if x.type == 'pudding']
-            p.position = Position()
-            p.position.add(puddings)
-            p.hand.add(self.deck.draw(self.cards_per_player))
-
-        
-        self.round += 1
-        self.turns_taken = 0
 
     def reset(self):
-        self.round = 0
-        self.deck = Deck(self.contents)
-        self.discard = Discard()
+        self.drawbag = DrawBag(self.contents)
         self.players = []
-        self.action_bank = []
 
         player_id = 1
         for p in range(self.n_players):
             self.players.append(Player(str(player_id)))
             player_id += 1
 
+
         self.current_player_num = 0
         self.done = False
-        self.reset_round()
         logger.debug(f'\n\n---- NEW GAME ----')
+
+        self.board = Board(self.board_size)
+        
+        self.board.fill(self.drawbag.draw(self.squares))
+
+        for net in self.nets:
+            self.board.add_net(net)
+
+        self.place_hudson()
+
+        self.turns_taken = 0
+
         return self.observation
 
 
@@ -344,31 +293,55 @@ class ButterflyEnv(gym.Env):
         if close:
             return
 
-        if self.turns_taken < self.cards_per_player:
-            logger.debug(f'\n\n-------ROUND {self.round} : TURN {self.turns_taken + 1}-----------')
+        if not self.done:
+            logger.debug(f'\n\n-------TURN {self.turns_taken + 1}-----------')
             logger.debug(f"It is Player {self.current_player.id}'s turn to choose")
         else:
-            logger.debug(f'\n\n-------FINAL ROUND {self.round} POSITION-----------')
+            logger.debug(f'\n\n-------FINAL POSITION-----------')
+        
+        out = '\n'
+        for square in range(self.squares):
+            if self.board.hudson == square:
+                if self.board.hudson_facing == 'R':
+                    out += '>H>\t'
+                elif self.board.hudson_facing == 'L':
+                    out += '<H<\t'
+                elif self.board.hudson_facing == 'U':
+                    out += '^H^\t'
+                elif self.board.hudson_facing == 'D':
+                    out += 'vHv\t'
+            elif self.board.tiles[square] == None:
+                if self.board.nets[square]:
+                    out += '-🥅-\t'
+                else:
+                    out += '---\t'
+            else:
+                out += self.board.tiles[square].symbol + '\t' 
+
+            if square % self.board_size == self.board_size - 1:
+                logger.debug(out)
+                out = ''
             
+        logger.debug('\n')
+
 
         for p in self.players:
-            logger.debug(f'\nPlayer {p.id}\'s hand')
-            if p.hand.size() > 0:
-                logger.debug('  '.join([ str(card.order) + ': ' + card.symbol for card in sorted(p.hand.cards, key=lambda x: x.id)]))
-            else:
-                logger.debug('Empty')
-
             logger.debug(f'Player {p.id}\'s position')
             if p.position.size() > 0:
-                logger.debug('  '.join([str(card.order) + ': ' + card.symbol + ': ' + str(card.id) for card in sorted(p.position.cards, key=lambda x: x.id)]))
+
+                out = '  '.join([tile.symbol for tile in sorted(p.position.tiles, key=lambda x: x.id) if tile.type != 'cricket'])
+                out += '  ' + '  '.join([tile.symbol for tile in p.position.tiles if tile.type == 'cricket'])
+
+                logger.debug(out)
             else:
                 logger.debug('Empty')
 
-        logger.debug(f'\n{self.deck.size()} cards left in deck')
-        logger.debug(f'{self.discard.size()} cards discarded')
+        logger.debug(f'\n{self.drawbag.size()} tiles left in drawbag')
 
         if self.verbose:
-            logger.debug(f'\nObservation: \n{[i if o == 1 else (i,o) for i,o in enumerate(self.observation) if o != 0]}')
+            obs_1s = [i if o == 1 else (i,o) for i,o in enumerate(self.observation) if o != 0]
+            logger.debug(f'\nObservation 1s: {sum(obs_1s)}')
+            logger.debug(f'\nObservation: \n{obs_1s}')
         
         if not self.done:
             logger.debug(f'\nLegal actions: {[i for i,o in enumerate(self.legal_actions) if o != 0]}')
@@ -376,11 +349,9 @@ class ButterflyEnv(gym.Env):
         if self.done:
             logger.debug(f'\n\nGAME OVER')
             
-
-        if self.turns_taken == self.cards_per_player:
             for p in self.players:
-                logger.debug(f'Player {p.id} points: {p.score}')
+                logger.debug(f'Player {p.id} points: {p.position.score}')
 
 
     def rules_move(self):
-        raise Exception('Rules based agent is not yet implemented for Sushi Go!')
+        raise Exception('Rules based agent is not yet implemented for Butterfly!')

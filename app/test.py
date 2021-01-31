@@ -1,3 +1,5 @@
+# docker-compose exec app python3 test.py -d -g 1 -a base base human -e butterfly 
+
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 

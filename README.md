@@ -215,6 +215,8 @@ The `legal_actions` function returns a numpy vector of the same length as the ac
 
 Please refer to existing environments for examples of how to implement each method.
 
+You will also need to add the environment to the two functions in `/utils/register.py` - follow the existing examples of environments for the structure.
+
 ---
 <!-- Parallelisation -->
 ### Parallelisation

@@ -72,7 +72,7 @@ class SushiGoEnv(gym.Env):
             obs[7][card.id] = 1
         
         ret = obs.flatten()
-        for p in self.players:
+        for p in self.players: # TODO this should be from reference point of the current_player
             ret = np.append(ret, p.score / self.max_score)
 
         ret = np.append(ret, self.legal_actions)
@@ -81,7 +81,7 @@ class SushiGoEnv(gym.Env):
 
     @property
     def legal_actions(self):
-        legal_actions = np.zeros(self.card_types + self.card_types * self.card_types)
+        legal_actions = np.zeros(self.action_space.n)
         hand = self.current_player.hand.cards
 
         for i in range(len(hand)):
@@ -270,8 +270,8 @@ class SushiGoEnv(gym.Env):
 
             if len(self.action_bank) == self.n_players:
                 logger.debug(f'\nThe chosen cards are now played simultaneously')
-                for player_num, action in enumerate(self.action_bank):
-                    player = self.players[player_num]
+                for i, action in enumerate(self.action_bank):
+                    player = self.players[i]
 
                     pickup_chopsticks, first_card, second_card = self.convert_action(action)
                     self.play_card(first_card, player)
