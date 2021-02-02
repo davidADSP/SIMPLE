@@ -12,6 +12,8 @@ from stable_baselines.common.distributions import CategoricalProbabilityDistribu
 ACTIONS = 98
 FEATURE_SIZE = 128
 DEPTH = 5
+VALUE_DEPTH = 1
+POLICY_DEPTH = 1
 
 class CustomPolicy(ActorCriticPolicy):
     def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=False, **kwargs):
@@ -50,7 +52,8 @@ def split_input(obs, split):
 
 
 def value_head(y):
-    y = dense(y, FEATURE_SIZE)
+    for _ in range(VALUE_DEPTH):
+        y = dense(y, FEATURE_SIZE)
     vf = dense(y, 1, batch_norm = False, activation = 'tanh', name='vf')
     q = dense(y, ACTIONS, batch_norm = False, activation = 'tanh', name='q')
     return vf, q
@@ -58,8 +61,8 @@ def value_head(y):
 
 def policy_head(y, legal_actions):
 
-
-    y = dense(y, FEATURE_SIZE)
+    for _ in range(POLICY_DEPTH):
+        y = dense(y, FEATURE_SIZE)
     policy = dense(y, ACTIONS, batch_norm = False, activation = None, name='pi')
     
     mask = Lambda(lambda x: (1 - x) * -1e8)(legal_actions)   

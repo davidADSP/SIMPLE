@@ -47,7 +47,7 @@ def main(args):
     elif agent == 'rules':
       agent_obj = Agent('rules')
     elif agent == 'base':
-      base_model = load_model(env)
+      base_model = load_model(env, 'base.zip')
       agent_obj = Agent('base', base_model)   
     else:
       ppo_model = load_model(env, f'{agent}.zip')

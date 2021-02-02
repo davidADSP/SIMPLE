@@ -67,42 +67,63 @@ class ButterflyEnv(gym.Env):
     def observation(self):
         obs = np.zeros(([self.total_positions, self.total_tiles]))
         player_num = self.current_player_num
-        positions_seen = 0
 
+        # print('Tiles')
         for s, tile in enumerate(self.board.tiles):
             if tile is not None:
                 obs[s][tile.id] = 1
+                # print(s, tile.id)
 
+        # print('Positions')
         for i in range(self.n_players):
             player = self.players[player_num]
 
             for tile in player.position.tiles:
                 obs[self.squares + i][tile.id] = 1
+                # print(self.squares + i, tile.id)
 
             player_num = (player_num + 1) % self.n_players
-
+        
+        # print('DrawBag')
         for tile in self.drawbag.tiles:
             obs[-1][tile.id] = 1
+            # print(len(obs)-1, tile.id)
 
         ret = obs.flatten()
 
+        # print('Hudson')
         hudson_obs = np.zeros((self.squares, ))
         hudson_obs[self.board.hudson] = 1
+        # print(len(ret) + self.board.hudson)
 
         ret = np.append(ret, hudson_obs)
 
+        # print('Hudson facing')
         hudson_facing_obs = np.zeros((4, ))
         for i, x in enumerate(['U','D','L','R']):
             if self.board.hudson_facing == x:
                 hudson_facing_obs[i] = 1
+                # print(len(ret) + i)
 
         ret = np.append(ret, hudson_facing_obs)
+
+        # print('Score')
+        score_obs = np.zeros((self.n_players, ))
 
         player_num = self.current_player_num
         for i in range(self.n_players):
             player = self.players[player_num]
-            ret = np.append(ret, player.score / self.max_score)
+            score_obs[i] = player.position.score / self.max_score
+            # print(len(ret) + i)
+            # print(score_obs[i])
             player_num = (player_num + 1) % self.n_players
+
+        ret = np.append(ret, score_obs)
+
+        # print('Legal actions')
+        # for i in range(len(self.legal_actions)):
+        #     if self.legal_actions[i] == 1:
+        #         print(len(ret) + i)
 
         ret = np.append(ret, self.legal_actions)
 
@@ -339,9 +360,8 @@ class ButterflyEnv(gym.Env):
         logger.debug(f'\n{self.drawbag.size()} tiles left in drawbag')
 
         if self.verbose:
-            obs_1s = [i if o == 1 else (i,o) for i,o in enumerate(self.observation) if o != 0]
-            logger.debug(f'\nObservation 1s: {sum(obs_1s)}')
-            logger.debug(f'\nObservation: \n{obs_1s}')
+            obs_sparse = [i if o == 1 else (i,o) for i,o in enumerate(self.observation) if o != 0]
+            logger.debug(f'\nObservation: \n{obs_sparse}')
         
         if not self.done:
             logger.debug(f'\nLegal actions: {[i for i,o in enumerate(self.legal_actions) if o != 0]}')

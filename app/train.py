@@ -9,6 +9,7 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 
 import argparse
+import time
 from shutil import copyfile
 from mpi4py import MPI
 
@@ -46,6 +47,7 @@ def main(args):
   if args.debug:
     logger.set_level(config.DEBUG)
   else:
+    time.sleep(5)
     logger.set_level(config.INFO)
 
   workerseed = args.seed + 10000 * MPI.COMM_WORLD.Get_rank()
@@ -73,10 +75,11 @@ def main(args):
       , 'tensorboard_log':config.LOGDIR
   }
 
-  
+  time.sleep(5) # allow time for the base model to be saved out when the environment is created
+
   if args.reset or not os.path.exists(os.path.join(model_dir, 'best_model.zip')):
-    logger.info('\nLoading a base PPO agent to train...')
-    model = PPO1(CustomPolicy , env, **params)
+    logger.info('\nLoading the base PPO agent to train...')
+    model = PPO1.load(os.path.join(model_dir, 'base.zip'), env, **params)
   else:
     logger.info('\nLoading the best_model.zip PPO agent to continue training...')
     model = PPO1.load(os.path.join(model_dir, 'best_model.zip'), env, **params)
