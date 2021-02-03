@@ -26,34 +26,34 @@ class Butterfly(Tile):
         elif colour == 'R':
             colour_icon = '🔴'
             
-        self.symbol = f'🦋{colour_icon}{value}' if value > 0 else f'🦋{colour_icon}X'
+        self.symbol = f'{colour_icon}{value}' if value > 0 else f'{colour_icon}X'
 
 class Flower(Tile):
     def __init__(self, id, order, name):
         super(Flower, self).__init__(id, order, name)
         self.type = 'flower'
-        self.symbol = '🌼  '
+        self.symbol = '🌼'
         
 class Dragonfly(Tile):
     def __init__(self, id, order, name, value):
         super(Dragonfly, self).__init__(id, order, name)
         self.value = value
         self.type = 'dragonfly'
-        self.symbol = f'🐲{value} '
+        self.symbol = f'🐲{value}'
 
 class LightningBug(Tile):
     def __init__(self, id, order, name, value):
         super(LightningBug, self).__init__(id, order, name)
         self.value = value
         self.type = 'lightningbug'
-        self.symbol = f'⚡️{value} '
+        self.symbol = f'⚡️{value}'
         
 class Cricket(Tile):
     def __init__(self, id, order, name, value):
         super(Cricket, self).__init__(id, order, name)
         self.value = value
         self.type = 'cricket'
-        self.symbol = f'🏏{value} '
+        self.symbol = f'🏏{value}'
 
 
 class Bee(Tile):
@@ -76,7 +76,7 @@ class Wasp(Tile):
         super(Wasp, self).__init__(id, order, name)
         self.value = value
         self.type = 'wasp'
-        self.symbol = f'🐝{value} '
+        self.symbol = f'🐝{value}'
 
 
 

@@ -30,7 +30,7 @@ class ButterflyEnv(gym.Env):
         self.nets = [5,7,16, 24, 32, 41, 43]
         self.total_tiles = sum([x['count'] for x in self.contents])
 
-        self.action_space = gym.spaces.Discrete(self.squares  * 2)
+        self.action_space = gym.spaces.Discrete(self.total_tiles  * 2)
         self.observation_space = gym.spaces.Box(0, 1, (self.total_positions * self.total_tiles + self.squares + 4 + self.n_players + self.action_space.n ,))
         self.verbose = verbose
 
@@ -143,10 +143,11 @@ class ButterflyEnv(gym.Env):
                 for i in range(self.board_size):
                     current_square = current_square + factor * self.board_size
                     if 0 <= current_square < self.squares:
-                        if self.board.tiles[current_square] is not None:
-                            legal_actions[current_square] = 1
+                        tile = self.board.tiles[current_square]
+                        if tile is not None:
+                            legal_actions[tile.id] = 1
                             if found_net:
-                                legal_actions[current_square + self.squares] = 1
+                                legal_actions[tile.id + self.total_tiles] = 1
                         else:
                             if self.board.nets[current_square] == 1:
                                 found_net = True
@@ -163,10 +164,11 @@ class ButterflyEnv(gym.Env):
                 for i in range(self.board_size):
                     current_square = current_square + factor
                     if (factor == 1 and current_square % self.board_size != 0) or (factor == -1 and current_square % self.board_size != self.board_size - 1) :
-                        if self.board.tiles[current_square] is not None:
-                            legal_actions[current_square] = 1
+                        tile = self.board.tiles[current_square]
+                        if tile is not None:
+                            legal_actions[tile.id] = 1
                             if found_net:
-                                legal_actions[current_square + self.squares] = 1
+                                legal_actions[tile.id + self.total_tiles] = 1
                         else:
                             if self.board.nets[current_square] == 1:
                                 found_net = True
@@ -206,12 +208,16 @@ class ButterflyEnv(gym.Env):
     def current_player(self):
         return self.players[self.current_player_num]
 
-    def convert_action(self, action):
-        if action < self.squares:
-            return False, action
+    def convert_action(self, tile_id):
+        if tile_id < self.total_tiles:
+            net = False
         else:
-            action = action - self.squares
-            return True, action
+            net = True        
+            tile_id = tile_id - self.total_tiles
+
+        square = [i for i, tile in enumerate(self.board.tiles) if tile is not None and tile.id == tile_id][0]
+
+        return net, square
 
 
     def choose_net_tile(self):
@@ -249,6 +255,7 @@ class ButterflyEnv(gym.Env):
         else:
             # pick the tile and optional bonus tile
             net, square = self.convert_action(action)
+            
             self.choose_tile(square)
 
             if net:
@@ -266,15 +273,12 @@ class ButterflyEnv(gym.Env):
             
             self.board.hudson = square
 
-
-            self.current_player_num = (self.current_player_num + 1) % self.n_players
-
-            self.turns_taken += 1
-
             if sum(self.legal_actions) == 0:
                 reward = self.score_game()
                 done = True
-
+            else:
+                self.turns_taken += 1
+                self.current_player_num = (self.current_player_num + 1) % self.n_players
 
         self.done = done
 
@@ -337,7 +341,7 @@ class ButterflyEnv(gym.Env):
                 else:
                     out += '---\t'
             else:
-                out += self.board.tiles[square].symbol + '\t' 
+                out += self.board.tiles[square].symbol + ':' + str(self.board.tiles[square].id) + '\t' 
 
             if square % self.board_size == self.board_size - 1:
                 logger.debug(out)
@@ -362,15 +366,16 @@ class ButterflyEnv(gym.Env):
         if self.verbose:
             obs_sparse = [i if o == 1 else (i,o) for i,o in enumerate(self.observation) if o != 0]
             logger.debug(f'\nObservation: \n{obs_sparse}')
-        
-        if not self.done:
-            logger.debug(f'\nLegal actions: {[i for i,o in enumerate(self.legal_actions) if o != 0]}')
 
         if self.done:
             logger.debug(f'\n\nGAME OVER')
-            
-            for p in self.players:
-                logger.debug(f'Player {p.id} points: {p.position.score}')
+        else:
+            logger.debug(f'\nLegal actions: {[i for i,o in enumerate(self.legal_actions) if o != 0]}')
+        
+        logger.debug(f'\n')
+
+        for p in self.players:
+            logger.debug(f'Player {p.id} points: {p.position.score}')
 
 
     def rules_move(self):
