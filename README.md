@@ -101,7 +101,7 @@ Install [Docker](https://github.com/davidADSP/SIMPLE/issues) and [Docker Compose
    ```sh
    docker-compose up -d
    ```
-3. Choose an environment to install in the container (`tictactoe`, `connect4` and 3-player `sushigo` are currently implemented)
+3. Choose an environment to install in the container (`tictactoe`, `connect4`, `sushigo` and `butterfly` are currently implemented)
    ```sh
    bash ./scripts/install_env.sh sushigo
    ```
@@ -214,6 +214,8 @@ The `legal_actions` function returns a numpy vector of the same length as the ac
 
 
 Please refer to existing environments for examples of how to implement each method.
+
+You will also need to add the environment to the two functions in `/utils/register.py` - follow the existing examples of environments for the structure.
 
 ---
 <!-- Parallelisation -->

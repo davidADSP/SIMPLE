@@ -32,7 +32,7 @@ class Agent():
   def print_top_actions(self, action_probs):
     top5_action_idx = np.argsort(-action_probs)[:5]
     top5_actions = action_probs[top5_action_idx]
-    logger.debug(f"Top 5 actions: {[str(i) + ': ' + str(a)[:5] for i,a in zip(top5_action_idx, top5_actions)]}")
+    logger.debug(f"Top 5 actions: {[str(i) + ': ' + str(round(a,2))[:5] for i,a in zip(top5_action_idx, top5_actions)]}")
 
   def choose_action(self, env, choose_best_action, mask_invalid_actions):
       if self.name == 'rules':

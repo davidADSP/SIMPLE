@@ -1,3 +1,5 @@
+# docker-compose exec app python3 test.py -d -g 1 -a base base human -e butterfly 
+
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 
@@ -45,7 +47,7 @@ def main(args):
     elif agent == 'rules':
       agent_obj = Agent('rules')
     elif agent == 'base':
-      base_model = load_model(env)
+      base_model = load_model(env, 'base.zip')
       agent_obj = Agent('base', base_model)   
     else:
       ppo_model = load_model(env, f'{agent}.zip')
