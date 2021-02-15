@@ -54,7 +54,8 @@ class GeschenktEnv(gym.Env):
 
             player_num = (player_num + 1) % self.n_players
 
-        obs[-1][self.centre_card.cards[0].id] = 1
+        if self.centre_card.size() > 0:
+            obs[-1][self.centre_card.cards[0].id] = 1
 
         ret = obs.flatten()
 
@@ -159,7 +160,7 @@ class GeschenktEnv(gym.Env):
             else:
                 if draw_card:
                     self.centre_card.add(self.deck.draw(1))
-                self.render()
+
 
         self.done = done
 
