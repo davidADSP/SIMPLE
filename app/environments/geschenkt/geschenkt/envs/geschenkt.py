@@ -29,7 +29,7 @@ class GeschenktEnv(gym.Env):
 
         self.total_cards = sum([x['count'] for x in self.contents])
 
-        self.action_space = gym.spaces.Discrete(2)
+        self.action_space = gym.spaces.Discrete(1 + 35)
         self.observation_space = gym.spaces.Box(-1, 1, (
             self.total_cards * self.total_positions # cards
             + self.total_positions # counters
@@ -90,9 +90,11 @@ class GeschenktEnv(gym.Env):
 
     @property
     def legal_actions(self):
-        legal_actions = np.ones(self.action_space.n)
-        if self.current_player.counters.size() == 0:
-            legal_actions[0] = 0
+        legal_actions = np.zeros(self.action_space.n)
+        if self.current_player.counters.size() > 0:
+            legal_actions[0] = 1
+        if self.centre_card.size() > 0:
+            legal_actions[self.centre_card.cards[0].value] = 1
 
         return legal_actions
 
@@ -101,21 +103,15 @@ class GeschenktEnv(gym.Env):
     def score_game(self):
         reward = [0.0] * self.n_players
         scores = [p.score for p in self.players]
-        max_score = max(scores)
         min_score = min(scores)
         winners = []
-        losers = []
+
         for i, s in enumerate(scores):
             if s == min_score:
                 winners.append(i)
-            if s == max_score:
-                losers.append(i)
 
         for w in winners:
             reward[w] += 1.0 / len(winners)
-        
-        for l in losers:
-            reward[l] -= 1.0 / len(losers)
 
         return reward
 
@@ -216,7 +212,7 @@ class GeschenktEnv(gym.Env):
             logger.debug(f'\n{self.centre_card.cards[0].symbol} in the centre')
         else:
             logger.debug(f'No card in the centre')
-            
+
         logger.debug(f'{self.centre_counters.size()} counters in the centre')
 
         logger.debug(f'\n{self.deck.size()} cards left in deck')
