@@ -14,6 +14,9 @@ def get_environment(env_name):
         elif env_name in ('butterfly'):
             from butterfly.envs.butterfly import ButterflyEnv
             return ButterflyEnv
+        elif env_name in ('geschenkt'):
+            from geschenkt.envs.geschenkt import GeschenktEnv
+            return GeschenktEnv
         else:
             raise Exception(f'No environment found for {env_name}')
     except SyntaxError as e:
@@ -36,6 +39,9 @@ def get_network_arch(env_name):
         return CustomPolicy
     elif env_name in ('butterfly'):
         from models.butterfly.models import CustomPolicy
+        return CustomPolicy
+    elif env_name in ('geschenkt'):
+        from models.geschenkt.models import CustomPolicy
         return CustomPolicy
     else:
         raise Exception(f'No model architectures found for {env_name}')
