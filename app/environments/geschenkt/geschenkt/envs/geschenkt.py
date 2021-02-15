@@ -127,6 +127,7 @@ class GeschenktEnv(gym.Env):
         
         reward = [0] * self.n_players
         done = False
+        draw_card = False
 
         # check move legality
         if self.legal_actions[action] == 0:
@@ -146,6 +147,7 @@ class GeschenktEnv(gym.Env):
                 self.current_player.counters.add(self.centre_counters.size())
                 self.centre_card.reset()
                 self.centre_counters.reset()
+                draw_card = True
                 
             
             self.current_player_num = (self.current_player_num + 1) % self.n_players
@@ -155,7 +157,8 @@ class GeschenktEnv(gym.Env):
                 reward = self.score_game()
                 done = True
             else:
-                self.centre_card.add(self.deck.draw(1))
+                if draw_card:
+                    self.centre_card.add(self.deck.draw(1))
                 self.render()
 
         self.done = done
