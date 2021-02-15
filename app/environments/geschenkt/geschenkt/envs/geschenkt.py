@@ -212,7 +212,11 @@ class GeschenktEnv(gym.Env):
             logger.debug(f'\nPlayer {p.id}: {p.counters.size()} counters')
             logger.debug([x.symbol for x in sorted(p.position.cards, key=lambda x: x.id)])
 
-        logger.debug(f'\n{self.centre_card.cards[0].symbol} in the centre')
+        if self.centre_card.size() > 0:
+            logger.debug(f'\n{self.centre_card.cards[0].symbol} in the centre')
+        else:
+            logger.debug(f'No card in the centre')
+            
         logger.debug(f'{self.centre_counters.size()} counters in the centre')
 
         logger.debug(f'\n{self.deck.size()} cards left in deck')
