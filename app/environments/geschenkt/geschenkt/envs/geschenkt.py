@@ -30,7 +30,7 @@ class GeschenktEnv(gym.Env):
         self.total_cards = sum([x['count'] for x in self.contents])
 
         self.action_space = gym.spaces.Discrete(2)
-        self.observation_space = gym.spaces.Box(0, 1, (
+        self.observation_space = gym.spaces.Box(-1, 1, (
             self.total_cards * self.total_positions # cards
             + self.total_positions # counters
             + self.n_players #scores
@@ -54,6 +54,7 @@ class GeschenktEnv(gym.Env):
 
             player_num = (player_num + 1) % self.n_players
 
+        obs[-1][self.centre_card.cards[0].id] = 1
 
         ret = obs.flatten()
 
