@@ -146,7 +146,7 @@ class GeschenktEnv(gym.Env):
                 self.current_player.counters.add(self.centre_counters.size())
                 self.centre_card.reset()
                 self.centre_counters.reset()
-                self.centre_card.add(self.deck.draw(1))
+                
             
             self.current_player_num = (self.current_player_num + 1) % self.n_players
             self.turns_taken += 1
@@ -155,6 +155,7 @@ class GeschenktEnv(gym.Env):
                 reward = self.score_game()
                 done = True
             else:
+                self.centre_card.add(self.deck.draw(1))
                 self.render()
 
         self.done = done
