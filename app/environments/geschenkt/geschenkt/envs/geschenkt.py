@@ -11,12 +11,22 @@ from .classes import *
 class GeschenktEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, verbose = False):
+    def __init__(self, verbose = False, manual = False, n_players = 3):
         super(GeschenktEnv, self).__init__()
         self.name = 'geschenkt'
-        self.n_players = 3
+        self.n_players = n_players
         self.counters_per_player = 11
-        self.cards_to_discard = 9
+        self.manual = manual
+
+        if self.manual:
+            self.cards_to_discard = 0
+            self.deck_size_at_end = 9
+        else:
+            self.cards_to_discard = 9
+            self.deck_size_at_end = 0
+        
+            
+        
         
         self.max_score = 300
         self.max_counters = 55
@@ -138,6 +148,8 @@ class GeschenktEnv(gym.Env):
                 logger.debug(f'\nPlayer chooses to play a counter')
                 self.current_player.counters.remove(1)
                 self.centre_counters.add(1)
+                self.current_player_num = (self.current_player_num + 1) % self.n_players
+
             else:
                 logger.debug(f'Player chooses to take card {self.centre_card.cards[0].symbol} and {self.centre_counters.size()} counters')
                 self.current_player.position.add(self.centre_card.cards)
@@ -146,16 +158,18 @@ class GeschenktEnv(gym.Env):
                 self.centre_counters.reset()
                 draw_card = True
                 
-            
-            self.current_player_num = (self.current_player_num + 1) % self.n_players
             self.turns_taken += 1
 
-            if self.deck.size() == 0:
+            if self.deck.size() == self.deck_size_at_end:
                 reward = self.score_game()
                 done = True
             else:
                 if draw_card:
-                    self.centre_card.add(self.deck.draw(1))
+                    if self.manual:
+                        next_card = input('What card is drawn?: ')
+                        self.centre_card.add(self.deck.pick(next_card))
+                    else:
+                        self.centre_card.add(self.deck.draw(1))
 
 
         self.done = done
@@ -170,7 +184,12 @@ class GeschenktEnv(gym.Env):
         self.discard.add(self.deck.draw(self.cards_to_discard))
 
         self.centre_card = Position()
-        self.centre_card.add(self.deck.draw(1))
+        if self.manual:
+            next_card = input('What card is drawn?: ')
+            self.centre_card.add(self.deck.pick(next_card))
+        else:
+            self.centre_card.add(self.deck.draw(1))
+        
         self.centre_counters = Counters()
 
         self.players = []

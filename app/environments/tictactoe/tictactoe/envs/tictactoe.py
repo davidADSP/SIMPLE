@@ -25,9 +25,11 @@ class Token():
 class TicTacToeEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, verbose = False):
+    def __init__(self, verbose = False, manual = False):
         super(TicTacToeEnv, self).__init__()
         self.name = 'tictactoe'
+        self.manual = manual
+        
         self.grid_length = 3
         self.n_players = 2
         self.num_squares = self.grid_length * self.grid_length

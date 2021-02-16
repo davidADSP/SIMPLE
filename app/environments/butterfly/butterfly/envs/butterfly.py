@@ -12,10 +12,12 @@ from .classes import *
 class ButterflyEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, verbose = False):
+    def __init__(self, verbose = False, manual = False):
         super(ButterflyEnv, self).__init__()
         self.name = 'butterfly'
         self.n_players = 3
+
+        self.manual = manual
 
         self.board_size = 7
         self.squares = self.board_size * self.board_size

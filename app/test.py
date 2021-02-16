@@ -29,7 +29,7 @@ def main(args):
     logger.set_level(config.INFO)
     
   #make environment
-  env = get_environment(args.env_name)(verbose = args.verbose)
+  env = get_environment(args.env_name)(verbose = args.verbose, manual = args.manual)
   env.seed(args.seed)
 
   total_rewards = {}
@@ -134,10 +134,14 @@ def cli() -> None:
                 , help="Make AI agents choose the best move (rather than sampling)")
   parser.add_argument("--games", "-g", type = int, default = 1
                 , help="Number of games to play)")
+  # parser.add_argument("--n_players", "-n", type = int, default = 3
+  #               , help="Number of players in the game (if applicable)")
   parser.add_argument("--debug", "-d",  action = 'store_true', default = False
             , help="Show logs to debug level")
   parser.add_argument("--verbose", "-v",  action = 'store_true', default = False
             , help="Show observation on debug logging")
+  parser.add_argument("--manual", "-m",  action = 'store_true', default = False
+            , help="Manual update of the game state on step")
   parser.add_argument("--randomise_players", "-r",  action = 'store_true', default = False
             , help="Randomise the player order")
   parser.add_argument("--cont", "-c",  action = 'store_true', default = False

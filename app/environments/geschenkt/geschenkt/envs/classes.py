@@ -61,6 +61,12 @@ class Deck():
                 
         self.shuffle()
 
+    def pick(self, symbol):
+        for i, c in enumerate(self.cards):
+            if c.symbol == symbol:
+                self.cards.pop(i)
+                return [c]
+
 
 
     def size(self):
