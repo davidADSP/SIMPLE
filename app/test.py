@@ -33,7 +33,13 @@ def main(args):
   env.seed(args.seed)
 
   total_rewards = {}
-  ppo_agent = None
+
+  if args.recommend:
+    ppo_model = load_model(env, 'best_model.zip')
+    ppo_agent = Agent('best_model', ppo_model)
+  else:
+    ppo_agent = None
+
 
   agents = []
 
@@ -51,7 +57,6 @@ def main(args):
       agent_obj = Agent('base', base_model)   
     else:
       ppo_model = load_model(env, f'{agent}.zip')
-      ppo_agent = i
       agent_obj = Agent(agent, ppo_model)
     agents.append(agent_obj)
     total_rewards[agent_obj.id] = 0
@@ -76,10 +81,10 @@ def main(args):
       env.render()
       logger.debug(f'\nCurrent player name: {current_player.name}')
 
-      if ppo_agent is not None and current_player.name in ['human', 'rules']:
+      if args.recommend and current_player.name in ['human', 'rules']:
         # show recommendation from last loaded model
-        logger.debug(f'\nRecommendation by {agents[ppo_agent].name}:')
-        action = agents[ppo_agent].choose_action(env, choose_best_action = True, mask_invalid_actions = True)
+        logger.debug(f'\nRecommendation by {ppo_agent.name}:')
+        action = ppo_agent.choose_action(env, choose_best_action = True, mask_invalid_actions = True)
 
       if current_player.name == 'human':
         action = input('\nPlease choose an action: ')
@@ -144,6 +149,8 @@ def cli() -> None:
             , help="Manual update of the game state on step")
   parser.add_argument("--randomise_players", "-r",  action = 'store_true', default = False
             , help="Randomise the player order")
+  parser.add_argument("--recommend", "-re",  action = 'store_true', default = False
+            , help="Make recommendations on humans turns")
   parser.add_argument("--cont", "-c",  action = 'store_true', default = False
             , help="Pause after each turn to wait for user to continue")
   parser.add_argument("--env_name", "-e",  type = str, default = 'TicTacToe'

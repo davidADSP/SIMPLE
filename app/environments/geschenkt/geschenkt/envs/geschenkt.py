@@ -156,21 +156,18 @@ class GeschenktEnv(gym.Env):
                 self.current_player.counters.add(self.centre_counters.size())
                 self.centre_card.reset()
                 self.centre_counters.reset()
-                draw_card = True
-                
-            self.turns_taken += 1
 
-            if self.deck.size() == self.deck_size_at_end:
-                reward = self.score_game()
-                done = True
-            else:
-                if draw_card:
+                if self.deck.size() == self.deck_size_at_end:
+                    reward = self.score_game()
+                    done = True
+                else:
                     if self.manual:
                         next_card = input('What card is drawn?: ')
                         self.centre_card.add(self.deck.pick(next_card))
                     else:
                         self.centre_card.add(self.deck.draw(1))
-
+                
+            self.turns_taken += 1
 
         self.done = done
 
