@@ -144,12 +144,12 @@ def cli() -> None:
   parser.add_argument("--best", "-b", action = 'store_true', default = False
               , help="Uses best moves when evaluating agent against rules-based agent")
   parser.add_argument("--env_name", "-e", type = str, default = 'tictactoe'
-              , help="Which gym environment to train in: tictactoe, connect4, sushigo")
+              , help="Which gym environment to train in: tictactoe, connect4, sushigo, butterfly, geschenkt")
   parser.add_argument("--seed", "-s",  type = int, default = 17
             , help="Random seed")
   parser.add_argument("--eval_freq", "-ef",  type = int, default = 10240
             , help="How many timesteps before the agent is evaluated?")
-  parser.add_argument("--n_eval_episodes", "-ne",  type = int, default = 500
+  parser.add_argument("--n_eval_episodes", "-ne",  type = int, default = 100
             , help="How many episodes should each actor contirbute to the evaluation of the agent")
   parser.add_argument("--threshold", "-t",  type = float, default = 0.2
             , help="What score must the agent achieve during evaluation to 'beat' the previous version?")

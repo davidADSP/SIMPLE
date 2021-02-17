@@ -74,6 +74,10 @@ def selfplay_wrapper(env):
             return self.agents[self.current_player_num]
 
         def continue_game(self):
+            observation = None
+            reward = None
+            done = None
+
             while self.current_player_num != self.agent_player_num:
                 self.render()
                 action = self.current_agent.choose_action(self, choose_best_action = False, mask_invalid_actions = False)
@@ -94,7 +98,10 @@ def selfplay_wrapper(env):
             logger.debug(f'Done: {done}')
 
             if not done:
-                observation, reward, done, _ = self.continue_game()
+                package = self.continue_game()
+                if package[0] is not None:
+                    observation, reward, done, _ = package
+
 
             agent_reward = reward[self.agent_player_num]
             logger.debug(f'\nReward To Agent: {agent_reward}')

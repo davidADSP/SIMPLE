@@ -24,9 +24,11 @@ class Token():
 class Connect4Env(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, verbose = False):
+    def __init__(self, verbose = False, manual = False):
         super(Connect4Env, self).__init__()
         self.name = 'connect4'
+        self.manual = manual
+
         self.rows = 6
         self.cols = 7
         self.n_players = 2
