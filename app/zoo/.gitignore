@@ -4,4 +4,3 @@
 !pretrained/*/
 !pretrained/*/*
 !tmp
-!.dockerignore
