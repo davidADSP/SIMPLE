@@ -1,4 +1,4 @@
-tensorflow==1.15.0
+tensorflow==1.15.5
 stable-baselines[mpi]==2.10.1
 jupyter==1.0.0
 jupyterlab==3.0.0
