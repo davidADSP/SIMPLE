@@ -1,1 +1,1 @@
-from sushigo.envs.sushigo import SushiGoEnv
+from sushigo.envs.prsi import SushiGoEnv

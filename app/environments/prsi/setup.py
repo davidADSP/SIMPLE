@@ -1,9 +1,9 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='sushigo',
+    name='prsi',
     version='0.1.0',
-    description='SushiGo Gym Environment',
+    description='Prsi Gym Environment',
     packages=find_packages(),
     install_requires=[
         'gym>=0.9.4',
@@ -11,5 +11,3 @@ setup(
         'opencv-python>=3.4.2.0',
     ]
 )
-
-

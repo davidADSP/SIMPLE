@@ -17,43 +17,27 @@ class PrsiEnv(gym.Env):
         self.name = 'prsi'
         self.manual = manual
 
+        # init Game
+        self.game = Game()
+
         self.n_players = 2
         self.cards_per_player = 5
-        self.card_types = 12
 
         self.n_rounds = 3
-        self.max_score = 100
 
         self.total_positions = self.n_players * 2 + 2
 
-        self.contents = [
-            {'card': Tempura, 'info': {'name': 'tempura'}, 'count': 14}  # 0
-            ,  {'card': Sashimi, 'info': {'name': 'sashimi'}, 'count':  14}  # 1
-            ,  {'card': Dumpling, 'info': {'name': 'dumpling'}, 'count':  14}  # 2
-            ,  {'card': Maki, 'info': {'name': 'maki2', 'value': 2}, 'count':  12}  # 3
-            ,  {'card': Maki, 'info': {'name': 'maki3', 'value': 3}, 'count':  8}  # 4
-            ,  {'card': Maki, 'info': {'name': 'maki1', 'value': 1}, 'count':  6}  # 5
-            ,  {'card': Nigiri,  'info': {'name': 'salmon', 'value': 2}, 'count':  10}  # 6
-            ,  {'card': Nigiri, 'info': {'name': 'squid', 'value': 3}, 'count':  5}  # 7
-            ,  {'card': Nigiri, 'info': {'name': 'egg', 'value': 1}, 'count':  5}  # 8
-            ,  {'card': Pudding, 'info': {'name': 'pudding', }, 'count':  10}  # 9
-            ,  {'card': Wasabi, 'info': {'name': 'wasabi', }, 'count':  6}  # 10
-            ,  {'card': Chopsticks, 'info': {'name': 'chopsticks', }, 'count':  4}  # 11
-        ]
-
-        self.total_cards = sum([x['count'] for x in self.contents])
-
-        self.action_space = gym.spaces.Discrete(32)
+        self.total_cards = 32
+        self.action_space = gym.spaces.Discrete(33)
 
         self.observation_space = gym.spaces.Box(
-            0, 1, (self.total_cards * self.total_positions + self.n_players + self.action_space.n,))
+            0, 1, (self.total_cards * self.n_players + self.action_space.n,))
         self.verbose = verbose
 
     @property
     def observation(self):
         obs = np.zeros(([self.total_positions, self.total_cards]))
         player_num = self.current_player_num
-        hands_seen = 0
 
         for i in range(self.n_players):
             player = self.players[player_num]
@@ -88,15 +72,12 @@ class PrsiEnv(gym.Env):
         legal_actions = np.zeros(self.action_space.n)
         hand = self.current_player.hand.cards
 
-        for i in range(len(hand)):
-            legal_actions[hand[i].order] = 1
-            if 'chopsticks' in [x.type for x in self.current_player.position.cards]:
-                for j in range(i+1, len(hand)):
-                    legal_actions[self.card_types +
-                                  (hand[i].order * self.card_types) + hand[j].order] = 1
-                    legal_actions[self.card_types +
-                                  (hand[j].order * self.card_types) + hand[i].order] = 1
+        # pop action
+        legal_actions[0] = 1
 
+        for i in range(len(hand)):
+            if hand[i].suit == self.game.tableCard.suit or hand[i].name == self.game.tableCard.name:
+                legal_actions[i] = 1
         return legal_actions
 
     def score_game(self):
@@ -135,75 +116,6 @@ class PrsiEnv(gym.Env):
 
         return counts_winners
 
-    def score_puddings(self):
-        logger.debug('\nPudding counts...')
-
-        puddings = []
-        for p in self.players:
-            puddings.append(
-                len([card for card in p.position.cards if card.type == 'pudding']))
-
-        logger.debug(f'Puddings: {puddings}')
-
-        pudding_winners = self.get_limits(puddings, 'max')
-
-        for i in pudding_winners:
-            self.players[i].score += 6 // len(pudding_winners)
-            logger.debug(
-                f'Player {self.players[i].id} 1st place puddings: {6 // len(pudding_winners)}')
-
-        pudding_losers = self.get_limits(puddings, 'min')
-
-        for i in pudding_losers:
-            self.players[i].score -= 6 // len(pudding_losers)
-            logger.debug(
-                f'Player {self.players[i].id} last place puddings: {-6 // len(pudding_losers)}')
-
-    def score_maki(self, maki):
-        logger.debug('\nMaki counts...')
-        logger.debug(f'Maki: {maki}')
-
-        maki_winners = self.get_limits(maki, 'max')
-
-        for i in maki_winners:
-            self.players[i].score += 6 // len(maki_winners)
-            maki[i] = None  # mask out the winners
-            logger.debug(
-                f'Player {self.players[i].id} 1st place maki: {6 // len(maki_winners)}')
-
-        if len(maki_winners) == 1:
-            # now get second place as winners are masked with None
-            maki_winners = self.get_limits(maki, 'max')
-
-            for i in maki_winners:
-                self.players[i].score += 3 // len(maki_winners)
-                logger.debug(
-                    f'Player {self.players[i].id} 2nd place maki: {3 // len(maki_winners)}')
-
-    def score_round(self):
-
-        maki = [0] * self.n_players
-
-        for i, p in enumerate(self.players):
-            count = {'tempura': 0, 'sashimi': 0, 'dumpling': 0}
-            for card in p.position.cards:
-                if card.type in ('tempura', 'sashimi', 'dumpling'):
-                    count[card.type] += 1
-                elif card.type == 'maki':
-                    maki[i] += card.value
-                elif card.type == 'nigiri':
-                    if card.played_on_wasabi:
-                        p.score += 3 * card.value
-                    else:
-                        p.score += card.value
-
-            p.score += (count['tempura'] // 2) * 5
-            p.score += (count['sashimi'] // 3) * 10
-            p.score += min(15, (count['dumpling'] *
-                           (count['dumpling'] + 1)) // 2)
-
-        self.score_maki(maki)
-
     @property
     def current_player(self):
         return self.players[self.current_player_num]
@@ -216,11 +128,6 @@ class PrsiEnv(gym.Env):
             first_card = action // self.card_types
             second_card = action % self.card_types
             return True, first_card, second_card
-
-    def pickup_chopsticks(self, player):
-        logger.debug(f'Player {player.id} picking up chopsticks')
-        chopsticks = player.position.pick('chopsticks')
-        player.hand.add([chopsticks])
 
     def play_card(self, card_num, player):
 
@@ -265,7 +172,10 @@ class PrsiEnv(gym.Env):
 
         # play the card(s)
         else:
-            self.action_bank.append(action)
+            # pop card from deck
+            if action == 0:
+                self.current_player.hand.pop()
+                done = True
 
             if len(self.action_bank) == self.n_players:
                 logger.debug(
