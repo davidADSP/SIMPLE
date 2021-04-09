@@ -97,14 +97,37 @@ class Hand():
                 self.cards.pop(i)
                 return c
 
+    def playable(self, tableCard):
+        playable = []
+        for i, c in enumerate(self.cards):
+            if c.suit == tableCard.suit:
+                playable.append(self.cards[i])
+            if c.name == tableCard.name:
+                playable.append(self.cards[i])
+        return playable
+
+
+class Game():
+    def __init__(self):
+        self.players = []
+        self.deck = Deck()
+        self.tableCard
+        self.playedCards = []
+
+# Development test
+
 
 deck = Deck()
 hand = Hand()
 
 tableCard = deck.cards.pop()
-
 hand.add(deck.pop(5))
 
 print("Otocena:", tableCard.name, tableCard.suit)
 print("V decku:", len(deck.cards))
 print("V ruke", len(hand.cards))
+
+mozedat = hand.playable(tableCard)
+
+for card in mozedat:
+    print("Mozem dat: ", card.name, card.suit)
