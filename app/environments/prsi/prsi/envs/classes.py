@@ -6,7 +6,6 @@ class Player():
         self.id = id
         self.score = 0
         self.hand = Hand()
-        self.position = Position()
 
 
 class Card():
@@ -42,37 +41,37 @@ class Deck():
             Card(2, "Gula", "VIII"),
             Card(3, "Gula", "IX"),
             Card(4, "Gula", "X"),
-            Card(5, "Gula", "D"),
-            Card(6, "Gula", "H"),
-            Card(7, "Gula", "K"),
-            Card(8, "Gula", "E"),
+            Card(5, "Gula", "Niznik"),
+            Card(6, "Gula", "Vysnik"),
+            Card(7, "Gula", "Kral"),
+            Card(8, "Gula", "Eso"),
 
             Card(9, "Zalud", "VII"),
             Card(10, "Zalud", "VIII"),
             Card(11, "Zalud", "IX"),
             Card(12, "Zalud", "X"),
-            Card(13, "Zalud", "D"),
-            Card(14, "Zalud", "H"),
-            Card(15, "Zalud", "K"),
-            Card(16, "Zalud", "E"),
+            Card(13, "Zalud", "Niznik"),
+            Card(14, "Zalud", "Vysnik"),
+            Card(15, "Zalud", "Kral"),
+            Card(16, "Zalud", "Eso"),
 
             Card(17, "Zelen", "VII"),
             Card(18, "Zelen", "VIII"),
             Card(19, "Zelen", "IX"),
             Card(20, "Zelen", "X"),
-            Card(21, "Zelen", "D"),
-            Card(22, "Zelen", "H"),
-            Card(23, "Zelen", "K"),
-            Card(24, "Zelen", "E"),
+            Card(21, "Zelen", "Niznik"),
+            Card(22, "Zelen", "Vysnik"),
+            Card(23, "Zelen", "Kral"),
+            Card(24, "Zelen", "Eso"),
 
             Card(25, "Cerven", "VII"),
             Card(26, "Cerven", "VIII"),
             Card(27, "Cerven", "IX"),
             Card(28, "Cerven", "X"),
-            Card(29, "Cerven", "D"),
-            Card(30, "Cerven", "H"),
-            Card(31, "Cerven", "K"),
-            Card(32, "Cerven", "E"),
+            Card(29, "Cerven", "Niznik"),
+            Card(30, "Cerven", "Vysnik"),
+            Card(31, "Cerven", "Kral"),
+            Card(32, "Cerven", "Eso"),
         ]
         self.shuffle()
 
@@ -111,13 +110,13 @@ class Game():
     def __init__(self):
         self.players = []
         self.deck = Deck()
-        self.tableCard
+        self.tableCard = None
         self.playedCards = []
 
 # Development test
 
 
-deck = Deck()
+""" deck = Deck()
 hand = Hand()
 
 tableCard = deck.cards.pop()
@@ -130,4 +129,4 @@ print("V ruke", len(hand.cards))
 mozedat = hand.playable(tableCard)
 
 for card in mozedat:
-    print("Mozem dat: ", card.name, card.suit)
+    print("Mozem dat: ", card.name, card.suit) """

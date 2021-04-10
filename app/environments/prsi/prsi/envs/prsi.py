@@ -1,12 +1,9 @@
 
 import gym
 import numpy as np
-
 import config
-
 from stable_baselines import logger
-
-from .classes import *
+from .classes import Player, Deck
 
 
 class PrsiEnv(gym.Env):
@@ -16,9 +13,6 @@ class PrsiEnv(gym.Env):
         super(PrsiEnv, self).__init__()
         self.name = 'prsi'
         self.manual = manual
-
-        # init Game
-        self.game = Game()
 
         self.n_players = 2
         self.cards_per_player = 5
@@ -31,39 +25,39 @@ class PrsiEnv(gym.Env):
         self.action_space = gym.spaces.Discrete(33)
 
         self.observation_space = gym.spaces.Box(
-            0, 1, (self.total_cards * self.n_players + self.action_space.n,))
+            0, 1, (97,))
         self.verbose = verbose
 
     @property
     def observation(self):
-        obs = np.zeros(([self.total_positions, self.total_cards]))
-        player_num = self.current_player_num
+        obs = np.zeros(([97, ]))
+        # player_num = self.current_player_num
 
-        for i in range(self.n_players):
-            player = self.players[player_num]
+        # for i in range(self.n_players):
+        #     player = self.players[player_num]
 
-            if self.turns_taken >= hands_seen:
-                for card in player.hand.cards:
-                    obs[i*2][card.id] = 1
+        #     if self.turns_taken >= hands_seen:
+        #         for card in player.hand.cards:
+        #             obs[i*2][card.id] = 1
 
-            for card in player.position.cards:
-                obs[i*2+1][card.id] = 1
+        #     for card in player.position.cards:
+        #         obs[i*2+1][card.id] = 1
 
-            player_num = (player_num + 1) % self.n_players
-            hands_seen += 1
+        #     player_num = (player_num + 1) % self.n_players
+        #     hands_seen += 1
 
-        if self.turns_taken >= self.n_players - 1:
-            for card in self.deck.cards:
-                obs[6][card.id] = 1
+        # if self.turns_taken >= self.n_players - 1:
+        #     for card in self.deck.cards:
+        #         obs[6][card.id] = 1
 
-        for card in self.discard.cards:
-            obs[7][card.id] = 1
+        # for card in self.discard.cards:
+        #     obs[7][card.id] = 1
 
+        # ret = obs.flatten()
+        # for p in self.players:  #  TODO this should be from reference point of the current_player
+        #     ret = np.append(ret, p.score / self.max_score)
         ret = obs.flatten()
-        for p in self.players:  #  TODO this should be from reference point of the current_player
-            ret = np.append(ret, p.score / self.max_score)
-
-        ret = np.append(ret, self.legal_actions)
+       # ret = np.append(ret, self.legal_actions)
 
         return ret
 
@@ -75,9 +69,9 @@ class PrsiEnv(gym.Env):
         # pop action
         legal_actions[0] = 1
 
-        for i in range(len(hand)):
-            if hand[i].suit == self.game.tableCard.suit or hand[i].name == self.game.tableCard.name:
-                legal_actions[i] = 1
+        for card in hand:
+            if card.suit == self.tableCard.suit or card.name == self.tableCard.name:
+                legal_actions[card.id] = 1
         return legal_actions
 
     def score_game(self):
@@ -129,36 +123,6 @@ class PrsiEnv(gym.Env):
             second_card = action % self.card_types
             return True, first_card, second_card
 
-    def play_card(self, card_num, player):
-
-        card_name = self.contents[card_num]['info']['name']
-        card = player.hand.pick(card_name)
-        if card is None:
-            logger.debug(
-                f"Player {player.id} trying to play {card_num} but doesn't exist!")
-            raise Exception('Card not found')
-
-        logger.debug(
-            f"Player {player.id} playing {str(card.order) + ': ' + card.symbol + ': ' + str(card.id)}")
-        if card.type == 'nigiri':
-            for c in player.position.cards:
-                if c.type == 'wasabi' and c.played_upon == False:
-                    c.played_upon = True
-                    card.played_on_wasabi = True
-                    break
-
-        player.position.add([card])
-
-    def switch_hands(self):
-        logger.debug(f'\nSwitching hands...')
-        playernhand = self.players[-1].hand
-
-        for i in range(self.n_players - 1, -1, -1):
-            if i > 0:
-                self.players[i].hand = self.players[i-1].hand
-
-        self.players[0].hand = playernhand
-
     def step(self, action):
 
         reward = [0] * self.n_players
@@ -174,64 +138,26 @@ class PrsiEnv(gym.Env):
         else:
             # pop card from deck
             if action == 0:
-                self.current_player.hand.pop()
-                done = True
+                self.current_player.hand.add(self.deck.pop())
+            else:
+                self.deck.cards.append(self.tableCard)
+                self.tableCard = self.current_player.hand.pick(action)
 
-            if len(self.action_bank) == self.n_players:
-                logger.debug(
-                    f'\nThe chosen cards are now played simultaneously')
-                for i, action in enumerate(self.action_bank):
-                    player = self.players[i]
-
-                    pickup_chopsticks, first_card, second_card = self.convert_action(
-                        action)
-                    self.play_card(first_card, player)
-
-                    if pickup_chopsticks:
-                        self.pickup_chopsticks(player)
-                        self.play_card(second_card, player)
-
-                self.action_bank = []
-                self.switch_hands()
-
-            self.current_player_num = (
-                self.current_player_num + 1) % self.n_players
-
-            if self.current_player_num == 0:
-                self.turns_taken += 1
-
-            if self.turns_taken == self.cards_per_player:
-                self.score_round()
-
-                if self.round >= self.n_rounds:
-                    self.score_puddings()
-                    reward = self.score_game()
-                    done = True
-                else:
-                    self.render()
-                    self.reset_round()
-
+        if len(self.current_player.hand.cards) == 0:
+            reward[self.current_player_num] = 1
+            done = True
         self.done = done
+        self.round += 1
 
         return self.observation, reward, done, {}
 
     def reset_round(self):
-
-        for p in self.players:
-            self.discard.add(
-                [x for x in p.position.cards if x.type != 'pudding'])
-            puddings = [x for x in p.position.cards if x.type == 'pudding']
-            p.position = Position()
-            p.position.add(puddings)
-            p.hand.add(self.deck.draw(self.cards_per_player))
-
         self.round += 1
         self.turns_taken = 0
 
     def reset(self):
         self.round = 0
-        self.deck = Deck(self.contents)
-        self.discard = Discard()
+        self.deck = Deck()
         self.players = []
         self.action_bank = []
 
@@ -240,8 +166,12 @@ class PrsiEnv(gym.Env):
             self.players.append(Player(str(player_id)))
             player_id += 1
 
+        for player in self.players:
+            player.hand.add(self.deck.pop(5))
+
         self.current_player_num = 0
         self.done = False
+        self.tableCard = self.deck.pop()[0]
         self.reset_round()
         logger.debug(f'\n\n---- NEW GAME ----')
         return self.observation
@@ -251,32 +181,20 @@ class PrsiEnv(gym.Env):
         if close:
             return
 
-        if self.turns_taken < self.cards_per_player:
             logger.debug(
-                f'\n\n-------ROUND {self.round} : TURN {self.turns_taken + 1}-----------')
+                f'\n\n-------ROUND {self.round}-----------')
             logger.debug(
                 f"It is Player {self.current_player.id}'s turn to choose")
-        else:
-            logger.debug(
-                f'\n\n-------FINAL ROUND {self.round} POSITION-----------')
 
         for p in self.players:
             logger.debug(f'\nPlayer {p.id}\'s hand')
-            if p.hand.size() > 0:
-                logger.debug('  '.join(
-                    [str(card.order) + ': ' + card.symbol for card in sorted(p.hand.cards, key=lambda x: x.id)]))
-            else:
-                logger.debug('Empty')
+            for card in p.hand.cards:
+                logger.debug(card.id, card.name, card.suit)
 
-            logger.debug(f'Player {p.id}\'s position')
-            if p.position.size() > 0:
-                logger.debug('  '.join([str(card.order) + ': ' + card.symbol + ': ' + str(
-                    card.id) for card in sorted(p.position.cards, key=lambda x: x.id)]))
-            else:
-                logger.debug('Empty')
+        logger.debug(
+            f'\nTable card {self.tableCard.name} {self.tableCard.suit}')
 
         logger.debug(f'\n{self.deck.size()} cards left in deck')
-        logger.debug(f'{self.discard.size()} cards discarded')
 
         if self.verbose:
             logger.debug(
