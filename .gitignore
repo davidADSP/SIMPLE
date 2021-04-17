@@ -112,5 +112,5 @@ venv.bak/
 # vscode
 .vscode/
 
+logs/
 
-logs/log.txt

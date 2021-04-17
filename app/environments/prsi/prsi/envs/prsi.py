@@ -13,25 +13,63 @@ class PrsiEnv(gym.Env):
         super(PrsiEnv, self).__init__()
         self.name = 'prsi'
         self.manual = manual
+        self.played_cards = []
 
         self.n_players = 2
         self.cards_per_player = 5
 
         self.n_rounds = 3
 
-        self.total_positions = self.n_players * 2 + 2
+        self.total_positions = self.n_players
 
         self.total_cards = 32
         self.action_space = gym.spaces.Discrete(33)
 
         self.observation_space = gym.spaces.Box(
-            0, 1, (97,))
+            low=0, high=1, shape=(231,))
+
+    #    self.action_space = gym.spaces.Discrete(
+     #       15 + 15 * 15)
+  #      self.observation_space = gym.spaces.Box(
+   #         0, 1, (self.total_cards + self.n_players + self.action_space.n,))
+
         self.verbose = verbose
 
-    @property
+    @ property
     def observation(self):
-        obs = np.zeros(([97, ]))
+
+        obs = np.zeros(([6, 33]))
+
+      # moje karty
+        # mojekarty = np.zeros(32)
+        for card in self.current_player.hand.cards:
+            obs[0][card.id] = 1
+
         # player_num = self.current_player_num
+
+        # # pocet mojich kariet (pozicia)
+        obs[1][len(self.current_player.hand.cards)] = 1
+        # karta na stole
+        obs[2][self.tableCard.id] = 1
+        # uz hrate karty
+        for card in self.played_cards:
+            obs[3][card.id] = 1
+
+        # # pocet protivnikovych kariet
+        # # TODO: opravit pre viac hracou
+        # oponet_card_sum = 0
+        for i in range(self.n_players):
+            obs[4+i][len(self.players[i].hand.cards)] = 1
+        # for card in self.played_card:
+        #     obs[3][card.id] = 1
+
+        # obs[4][len(self.current_player.hand.cards) +
+        #        len(self.played_card) + oponet_card_sum] = 1
+
+        ret = obs
+        ret = np.append(ret, self.legal_actions)
+
+        return ret
 
         # for i in range(self.n_players):
         #     player = self.players[player_num]
@@ -56,12 +94,12 @@ class PrsiEnv(gym.Env):
         # ret = obs.flatten()
         # for p in self.players:  #  TODO this should be from reference point of the current_player
         #     ret = np.append(ret, p.score / self.max_score)
-        ret = obs.flatten()
+       # ret = obs.flatten()
        # ret = np.append(ret, self.legal_actions)
 
-        return ret
+       # return ret
 
-    @property
+    @ property
     def legal_actions(self):
         legal_actions = np.zeros(self.action_space.n)
         hand = self.current_player.hand.cards
@@ -110,7 +148,7 @@ class PrsiEnv(gym.Env):
 
         return counts_winners
 
-    @property
+    @ property
     def current_player(self):
         return self.players[self.current_player_num]
 
@@ -141,6 +179,7 @@ class PrsiEnv(gym.Env):
                 self.current_player.hand.add(self.deck.pop())
             else:
                 self.deck.cards.append(self.tableCard)
+                self.played_cards.append(self.tableCard)
                 self.tableCard = self.current_player.hand.pick(action)
 
         if len(self.current_player.hand.cards) == 0:
@@ -148,6 +187,8 @@ class PrsiEnv(gym.Env):
             done = True
         self.done = done
         self.round += 1
+        self.current_player_num = (
+            self.current_player_num + 1) % self.n_players
 
         return self.observation, reward, done, {}
 
@@ -160,6 +201,7 @@ class PrsiEnv(gym.Env):
         self.deck = Deck()
         self.players = []
         self.action_bank = []
+        self.played_cards = []
 
         player_id = 1
         for p in range(self.n_players):
@@ -205,6 +247,7 @@ class PrsiEnv(gym.Env):
                 f'\nLegal actions: {[i for i,o in enumerate(self.legal_actions) if o != 0]}')
 
         if self.done:
+            logger.debug(f'\n\nRound {self.round}')
             logger.debug(f'\n\nGAME OVER')
 
         if self.turns_taken == self.cards_per_player:
