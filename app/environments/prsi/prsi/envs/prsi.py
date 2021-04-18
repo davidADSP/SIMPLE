@@ -14,6 +14,9 @@ class PrsiEnv(gym.Env):
         self.name = 'prsi'
         self.manual = manual
         self.played_cards = []
+        self.verbose = verbose
+        self.zobrane3 = False
+        self.stalsom = False
 
         self.n_players = 2
         self.cards_per_player = 5
@@ -23,10 +26,10 @@ class PrsiEnv(gym.Env):
         self.total_positions = self.n_players
 
         self.total_cards = 32
-        self.action_space = gym.spaces.Discrete(33)
+        self.action_space = gym.spaces.Discrete(35)
 
         self.observation_space = gym.spaces.Box(
-            low=0, high=1, shape=(231,))
+            low=0, high=1, shape=(280,))
 
     #    self.action_space = gym.spaces.Discrete(
      #       15 + 15 * 15)
@@ -34,70 +37,46 @@ class PrsiEnv(gym.Env):
    #         0, 1, (self.total_cards + self.n_players + self.action_space.n,))
 
         self.verbose = verbose
+        self.zobrane3 = False
+        self.stalsom = False
 
     @ property
     def observation(self):
 
-        obs = np.zeros(([6, 33]))
+        obs = np.zeros(([6, 35]))
+        maybe = np.zeros(35)
 
       # moje karty
         # mojekarty = np.zeros(32)
         for card in self.current_player.hand.cards:
             obs[0][card.id] = 1
-
-        # player_num = self.current_player_num
+            maybe[card.id] = 1
 
         # # pocet mojich kariet (pozicia)
         obs[1][len(self.current_player.hand.cards)] = 1
         # karta na stole
         obs[2][self.tableCard.id] = 1
+        maybe[self.tableCard.id] = 1
         # uz hrate karty
         for card in self.played_cards:
             obs[3][card.id] = 1
+            maybe[card.id] = 1
 
         # # pocet protivnikovych kariet
         # # TODO: opravit pre viac hracou
         # oponet_card_sum = 0
+
+        # for cardid in range(1, 32):
+       #     if self.played_cards.count(cardid)
+
         for i in range(self.n_players):
             obs[4+i][len(self.players[i].hand.cards)] = 1
-        # for card in self.played_card:
-        #     obs[3][card.id] = 1
-
-        # obs[4][len(self.current_player.hand.cards) +
-        #        len(self.played_card) + oponet_card_sum] = 1
 
         ret = obs
+        ret = np.append(ret, maybe)
         ret = np.append(ret, self.legal_actions)
 
         return ret
-
-        # for i in range(self.n_players):
-        #     player = self.players[player_num]
-
-        #     if self.turns_taken >= hands_seen:
-        #         for card in player.hand.cards:
-        #             obs[i*2][card.id] = 1
-
-        #     for card in player.position.cards:
-        #         obs[i*2+1][card.id] = 1
-
-        #     player_num = (player_num + 1) % self.n_players
-        #     hands_seen += 1
-
-        # if self.turns_taken >= self.n_players - 1:
-        #     for card in self.deck.cards:
-        #         obs[6][card.id] = 1
-
-        # for card in self.discard.cards:
-        #     obs[7][card.id] = 1
-
-        # ret = obs.flatten()
-        # for p in self.players:  #  TODO this should be from reference point of the current_player
-        #     ret = np.append(ret, p.score / self.max_score)
-       # ret = obs.flatten()
-       # ret = np.append(ret, self.legal_actions)
-
-       # return ret
 
     @ property
     def legal_actions(self):
@@ -107,9 +86,19 @@ class PrsiEnv(gym.Env):
         # pop action
         legal_actions[0] = 1
 
-        for card in hand:
-            if card.suit == self.tableCard.suit or card.name == self.tableCard.name:
-                legal_actions[card.id] = 1
+        # stojis akcia 33
+        if self.tableCard.name == "Eso" and self.stalsom == False:
+            legal_actions[33] = 1
+            legal_actions[0] = 0
+        # beres tri akcia 34
+        elif self.tableCard.name == "VII" and self.zobrane3 == False:
+            legal_actions[0] = 0
+            legal_actions[34] = 1
+        else:
+
+            for card in hand:
+                if card.suit == self.tableCard.suit or card.name == self.tableCard.name or card.name == "Vysnik":
+                    legal_actions[card.id] = 1
         return legal_actions
 
     def score_game(self):
@@ -166,8 +155,11 @@ class PrsiEnv(gym.Env):
         reward = [0] * self.n_players
         done = False
 
+        # check if have card in deck
+        if self.deck.size() == 0 or (action == 34 and self.deck.size() < 3):
+            done = True
         # check move legality
-        if self.legal_actions[action] == 0:
+        elif self.legal_actions[action] == 0:
             reward = [1.0/(self.n_players-1)] * self.n_players
             reward[self.current_player_num] = -1
             done = True
@@ -177,7 +169,17 @@ class PrsiEnv(gym.Env):
             # pop card from deck
             if action == 0:
                 self.current_player.hand.add(self.deck.pop())
+            # beres tri
+            elif action == 34:
+                self.current_player.hand.add(self.deck.pop(3))
+                self.zobrane3 = True
+            # stojis
+            elif action == 33:
+                self.stalsom = True
             else:
+                self.zobrane3 = False
+                self.stalsom = False
+
                 self.deck.cards.append(self.tableCard)
                 self.played_cards.append(self.tableCard)
                 self.tableCard = self.current_player.hand.pick(action)
@@ -202,6 +204,9 @@ class PrsiEnv(gym.Env):
         self.players = []
         self.action_bank = []
         self.played_cards = []
+
+        self.zobrane3 = False
+        self.stalsom = False
 
         player_id = 1
         for p in range(self.n_players):

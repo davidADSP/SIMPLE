@@ -8,7 +8,7 @@ tf.get_logger().setLevel('INFO')
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 
-ACTIONS = 33
+ACTIONS = 35
 FEATURE_SIZE = 64
 
 

@@ -129,4 +129,5 @@ print("V ruke", len(hand.cards))
 mozedat = hand.playable(tableCard)
 
 for card in mozedat:
-    print("Mozem dat: ", card.name, card.suit) """
+    print("Mozem dat: ", card.name, card.suit)
+ """
