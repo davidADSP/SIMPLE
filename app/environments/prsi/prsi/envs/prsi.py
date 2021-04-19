@@ -199,9 +199,6 @@ class PrsiEnv(gym.Env):
 
         for player in self.players:
             player.hand.add(self.deck.pop(5))
-# docassne 7
-            player.hand.add([Card(1, "Gula", "VII"),  Card(
-                17, "Zelen", "VII"), Card(25, "Cerven", "VII")])
 
         self.current_player_num = 0
         self.done = False
