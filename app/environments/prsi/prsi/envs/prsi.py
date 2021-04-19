@@ -2,7 +2,7 @@ import gym
 import numpy as np
 import config
 from stable_baselines import logger
-from .classes import Player, Deck
+from .classes import Player, Deck, Card
 
 
 class PrsiEnv(gym.Env):
@@ -33,6 +33,7 @@ class PrsiEnv(gym.Env):
         self.stalsom = False
         self.menimna = False
         self.ktoryvysnik = False
+        self.beres = 0
 
     @ property
     def observation(self):
@@ -80,6 +81,11 @@ class PrsiEnv(gym.Env):
         elif self.tableCard.name == "VII" and self.zobrane3 == False:
             legal_actions[0] = 0
             legal_actions[34] = 1
+            # ked mas 7 mozes prebit
+            for card in hand:
+                if card.name == "VII":
+                    legal_actions[card.id] = 1
+
         else:
             for card in hand:
                 if card.name == "Vysnik":
@@ -112,7 +118,7 @@ class PrsiEnv(gym.Env):
         menimna = self.menimna
 
         # check if have card in deck
-        if self.deck.size() == 0 or (action == 34 and self.deck.size() < 3):
+        if self.deck.size() == 0 or (action == 34 and self.deck.size() < 3+self.beres):
             done = True
         # check move legality
         elif self.legal_actions[action] == 0:
@@ -127,8 +133,9 @@ class PrsiEnv(gym.Env):
                 self.current_player.hand.add(self.deck.pop())
             # beres tri
             elif action == 34:
-                self.current_player.hand.add(self.deck.pop(3))
+                self.current_player.hand.add(self.deck.pop(3+self.beres))
                 self.zobrane3 = True
+                self.beres = 0
             # stojis
             elif action == 33:
                 self.stalsom = True
@@ -151,6 +158,9 @@ class PrsiEnv(gym.Env):
 
                 self.zobrane3 = False
                 self.stalsom = False
+                # prebijam 7
+                if self.tableCard.name == "VII" and (action == 1 or action == 9 or action == 17 or action == 25):
+                    self.beres = self.beres+3
 
                 self.deck.cards.append(self.tableCard)
                 self.played_cards.append(self.tableCard)
@@ -180,6 +190,7 @@ class PrsiEnv(gym.Env):
         self.stalsom = False
         self.menimna = ""
         self.ktoryvysnik = ""
+        self.beres = 0
 
         player_id = 1
         for p in range(self.n_players):
@@ -188,6 +199,9 @@ class PrsiEnv(gym.Env):
 
         for player in self.players:
             player.hand.add(self.deck.pop(5))
+# docassne 7
+            player.hand.add([Card(1, "Gula", "VII"),  Card(
+                17, "Zelen", "VII"), Card(25, "Cerven", "VII")])
 
         self.current_player_num = 0
         self.done = False
