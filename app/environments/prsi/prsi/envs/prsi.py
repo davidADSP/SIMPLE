@@ -219,7 +219,7 @@ class PrsiEnv(gym.Env):
         for p in self.players:
             logger.debug(f'\nPlayer {p.id}\'s hand')
             for card in p.hand.cards:
-                logger.debug(card.id, card.name, card.suit)
+                logger.debug(card.id, "  \t", card.name, "  \t", card.suit)
 
         logger.debug(
             f'\nTable card: {self.tableCard.name} {self.tableCard.suit}')
@@ -229,6 +229,7 @@ class PrsiEnv(gym.Env):
             logger.debug(f'\nMenim na {self.menimna}')
 
         if self.verbose:
+            logger.debug(f'\n\nRound {self.round}')
             logger.debug(
                 f'\nObservation: \n{[i if o == 1 else (i,o) for i,o in enumerate(self.observation) if o != 0]}')
 
