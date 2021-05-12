@@ -101,7 +101,7 @@ Install [Docker](https://github.com/davidADSP/SIMPLE/issues) and [Docker Compose
    ```sh
    docker-compose up -d
    ```
-3. Choose an environment to install in the container (`tictactoe`, `connect4`, `sushigo`, `geschenkt`, and `butterfly` are currently implemented)
+3. Choose an environment to install in the container (`tictactoe`, `connect4`, `sushigo`, `geschenkt`, `butterfly`, and `flamme rouge` are currently implemented)
    ```sh
    bash ./scripts/install_env.sh sushigo
    ```
