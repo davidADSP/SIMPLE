@@ -39,7 +39,6 @@ class Connect4Env(gym.Env):
         self.verbose = verbose
         
 
-    @property
     def observation(self):
         if self.current_player.token.number == 1:
             position_1 = np.array([1 if x.number == 1 else 0  for x in self.board]).reshape(self.grid_shape)
@@ -138,7 +137,7 @@ class Connect4Env(gym.Env):
         if not done:
             self.current_player_num = (self.current_player_num + 1) % 2
 
-        return self.observation, reward, done, {}
+        return self.observation(), reward, done, {}
 
     def reset(self):
         self.board = [Token('.', 0)] * self.num_squares
@@ -147,7 +146,7 @@ class Connect4Env(gym.Env):
         self.turns_taken = 0
         self.done = False
         logger.debug(f'\n\n---- NEW GAME ----')
-        return self.observation
+        return self.observation()
 
 
     def render(self, mode='human', close=False):
@@ -163,7 +162,7 @@ class Connect4Env(gym.Env):
             logger.debug(' '.join([x.symbol for x in self.board[i:(i+self.cols)]]))
 
         if self.verbose:
-            logger.debug(f'\nObservation: \n{self.observation}')
+            logger.debug(f'\nObservation: \n{self.observation()}')
         
         if not self.done:
             logger.debug(f'\nLegal actions: {[i for i,o in enumerate(self.legal_actions) if o != 0]}')

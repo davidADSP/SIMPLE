@@ -50,7 +50,6 @@ class GeschenktEnv(gym.Env):
         self.verbose = verbose
 
         
-    @property
     def observation(self):
         # Cards
         obs = np.zeros(([self.total_positions, self.total_cards]))
@@ -171,7 +170,7 @@ class GeschenktEnv(gym.Env):
 
         self.done = done
 
-        return self.observation, reward, done, {}
+        return self.observation(), reward, done, {}
 
 
 
@@ -205,7 +204,7 @@ class GeschenktEnv(gym.Env):
         self.done = False
 
         logger.debug(f'\n\n---- NEW GAME ----')
-        return self.observation
+        return self.observation()
 
 
     def render(self, mode='human', close=False):
@@ -235,7 +234,7 @@ class GeschenktEnv(gym.Env):
         logger.debug(f'{self.discard.size()} cards discarded')
 
         if self.verbose:
-            logger.debug(f'\nObservation: \n{[i if o == 1 else (i,o) for i,o in enumerate(self.observation) if o != 0]}')
+            logger.debug(f'\nObservation: \n{[i if o == 1 else (i,o) for i,o in enumerate(self.observation()) if o != 0]}')
         
         if not self.done:
             logger.debug(f'\nLegal actions: {[i for i,o in enumerate(self.legal_actions) if o != 0]}')

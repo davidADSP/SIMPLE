@@ -20,6 +20,7 @@ from stable_baselines.common.vec_env import DummyVecEnv
 from stable_baselines.common import set_global_seeds
 from stable_baselines import logger
 
+
 from utils.callbacks import SelfPlayCallback
 from utils.files import reset_files
 from utils.register import get_network_arch, get_environment
@@ -59,8 +60,6 @@ def main(args):
   env.seed(workerseed)
 
   
-  CustomPolicy = get_network_arch(args.env_name)
-
   params = {'gamma':args.gamma
     , 'timesteps_per_actorbatch':args.timesteps_per_actorbatch
     , 'clip_param':args.clip_param

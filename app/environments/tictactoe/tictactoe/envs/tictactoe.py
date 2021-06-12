@@ -39,7 +39,6 @@ class TicTacToeEnv(gym.Env):
         self.verbose = verbose
         
 
-    @property
     def observation(self):
         if self.players[self.current_player_num].token.number == 1:
             position = np.array([x.number for x in self.board]).reshape(self.grid_shape)
@@ -119,7 +118,7 @@ class TicTacToeEnv(gym.Env):
         if not done:
             self.current_player_num = (self.current_player_num + 1) % 2
 
-        return self.observation, reward, done, {}
+        return self.observation(), reward, done, {}
 
     def reset(self):
         self.board = [Token('.', 0)] * self.num_squares
@@ -128,7 +127,7 @@ class TicTacToeEnv(gym.Env):
         self.turns_taken = 0
         self.done = False
         logger.debug(f'\n\n---- NEW GAME ----')
-        return self.observation
+        return self.observation()
 
 
     def render(self, mode='human', close=False, verbose = True):
@@ -145,7 +144,7 @@ class TicTacToeEnv(gym.Env):
         logger.debug(' '.join([x.symbol for x in self.board[(self.grid_length*2):(self.grid_length*3)]]))
 
         if self.verbose:
-            logger.debug(f'\nObservation: \n{self.observation}')
+            logger.debug(f'\nObservation: \n{self.observation()}')
         
         if not self.done:
             logger.debug(f'\nLegal actions: {[i for i,o in enumerate(self.legal_actions) if o != 0]}')

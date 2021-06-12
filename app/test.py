@@ -10,11 +10,13 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 import random
 import argparse
 
+import gym
+
 from stable_baselines import logger
 
 from utils.files import load_model, write_results
 from utils.register import get_environment
-from utils.agents import Agent
+from utils.agents import DiscreteActionAgent, ContinuousActionAgent
 
 import config
 
@@ -33,6 +35,11 @@ def main(args):
   env.seed(args.seed)
 
   total_rewards = {}
+
+  if isinstance(env.action_space, gym.spaces.Discrete):
+    Agent = DiscreteActionAgent
+  else:
+    Agent = ContinuousActionAgent
 
   if args.recommend:
     ppo_model = load_model(env, 'best_model.zip')
@@ -95,10 +102,10 @@ def main(args):
           # for MulitDiscrete action input as list TODO
           action = eval(action)
       elif current_player.name == 'rules':
-        logger.debug(f'\n{current_player.name} model choices')
+        logger.debug(f'\n> {current_player.name} model')
         action = current_player.choose_action(env, choose_best_action = False, mask_invalid_actions = True)
       else:
-        logger.debug(f'\n{current_player.name} model choices')
+        logger.debug(f'\n> {current_player.name} model')
         action = current_player.choose_action(env, choose_best_action = args.best, mask_invalid_actions = True)
 
       obs, reward, done, _ = env.step(action)

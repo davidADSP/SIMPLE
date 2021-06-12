@@ -65,7 +65,6 @@ class ButterflyEnv(gym.Env):
             self.contents.append({'tile': Wasp, 'info': {'name': 'wasp', 'value': value}, 'count':  1})
 
         
-    @property
     def observation(self):
         obs = np.zeros(([self.total_positions, self.total_tiles]))
         player_num = self.current_player_num
@@ -284,7 +283,7 @@ class ButterflyEnv(gym.Env):
 
         self.done = done
 
-        return self.observation, reward, done, {}
+        return self.observation(), reward, done, {}
 
 
     def reset(self):
@@ -312,7 +311,7 @@ class ButterflyEnv(gym.Env):
 
         self.turns_taken = 0
 
-        return self.observation
+        return self.observation()
 
 
     def render(self, mode='human', close=False):
@@ -366,7 +365,7 @@ class ButterflyEnv(gym.Env):
         logger.debug(f'\n{self.drawbag.size()} tiles left in drawbag')
 
         if self.verbose:
-            obs_sparse = [i if o == 1 else (i,o) for i,o in enumerate(self.observation) if o != 0]
+            obs_sparse = [i if o == 1 else (i,o) for i,o in enumerate(self.observation()) if o != 0]
             logger.debug(f'\nObservation: \n{obs_sparse}')
 
         if self.done:

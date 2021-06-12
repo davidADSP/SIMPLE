@@ -19,10 +19,7 @@ def mask_actions(legal_actions, action_probs):
     return masked_action_probs
 
 
-
-
-
-class Agent():
+class DiscreteActionAgent():
   def __init__(self, name, model = None):
       self.name = name
       self.id = self.name + '_' + ''.join(random.choice(string.ascii_lowercase) for x in range(5))
@@ -39,8 +36,8 @@ class Agent():
         action_probs = np.array(env.rules_move())
         value = None
       else:
-        action_probs = self.model.action_probability(env.observation)
-        value = self.model.policy_pi.value(np.array([env.observation]))[0]
+        action_probs = self.model.action_probability(np.array([env.observation()]))[0]
+        value = self.model.policy_pi.value(np.array([env.observation()]))[0]
         logger.debug(f'Value {value:.2f}')
 
       self.print_top_actions(action_probs)
@@ -61,3 +58,32 @@ class Agent():
 
 
 
+
+
+class ContinuousActionAgent():
+  def __init__(self, name, model = None):
+      self.name = name
+      self.id = self.name + '_' + ''.join(random.choice(string.ascii_lowercase) for x in range(5))
+      self.model = model
+      self.points = 0
+
+  def print_top_actions(self, action_probs):
+    top5_action_idx = np.argsort(-action_probs)[:5]
+    top5_actions = action_probs[top5_action_idx]
+    logger.debug(f"Top 5 actions: {[str(i) + ': ' + str(round(a,2))[:5] for i,a in zip(top5_action_idx, top5_actions)]}")
+
+  def choose_action(self, env, choose_best_action, mask_invalid_actions):
+      if self.name == 'rules':
+        action = np.array(env.rules_move())
+        value = None
+      else:
+        mean, std = self.model.action_probability(np.array([env.observation()]))
+        action = mean[0]
+        std = std[0]
+        value = self.model.policy_pi.value(np.array([env.observation()]))[0]
+        logger.debug(f'Value {value:.2f}')
+
+      logger.debug(f'Action {action}')
+      logger.debug(f'StDev {std}')
+
+      return action

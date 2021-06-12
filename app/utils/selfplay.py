@@ -1,9 +1,10 @@
 import os
 import numpy as np
 import random
+import gym
 
 from utils.files import load_model, load_all_models, get_best_model_name
-from utils.agents import Agent
+from utils.agents import DiscreteActionAgent, ContinuousActionAgent
 
 import config
 
@@ -19,6 +20,12 @@ def selfplay_wrapper(env):
             self.best_model_name = get_best_model_name(self.name)
 
         def setup_opponents(self):
+
+            if isinstance(self.action_space, gym.spaces.Discrete):
+                Agent = DiscreteActionAgent
+            else:
+                Agent = ContinuousActionAgent
+
             if self.opponent_type == 'rules':
                 self.opponent_agent = Agent('rules')
             else:
@@ -67,7 +74,7 @@ def selfplay_wrapper(env):
             if self.current_player_num != self.agent_player_num:   
                 self.continue_game()
 
-            return self.observation
+            return self.observation()
 
         @property
         def current_agent(self):

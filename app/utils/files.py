@@ -62,7 +62,8 @@ def load_model(env, name):
                 
                 rank = MPI.COMM_WORLD.Get_rank()
                 if rank == 0:
-                    ppo_model = PPO1(get_network_arch(env.name), env=env)
+                    # ppo_model = PPO1(get_network_arch(env.name), env=env)
+                    ppo_model = PPO1(MlpPolicy, env = env)
                     logger.info(f'Saving base.zip PPO model...')
                     ppo_model.save(os.path.join(config.MODELDIR, env.name, 'base.zip'))
                 else:
@@ -73,6 +74,7 @@ def load_model(env, name):
             except IOError as e:
                 sys.exit(f'Permissions not granted on zoo/{env.name}/...')
             except Exception as e:
+                print(e)
                 print('Waiting for base.zip to be created...')
                 time.sleep(2)
                 

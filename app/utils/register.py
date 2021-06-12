@@ -17,6 +17,9 @@ def get_environment(env_name):
         elif env_name in ('geschenkt'):
             from geschenkt.envs.geschenkt import GeschenktEnv
             return GeschenktEnv
+        elif env_name in ('coop'):
+            from coop.envs.coop import CoopEnv
+            return CoopEnv
         else:
             raise Exception(f'No environment found for {env_name}')
     except SyntaxError as e:
@@ -42,6 +45,9 @@ def get_network_arch(env_name):
         return CustomPolicy
     elif env_name in ('geschenkt'):
         from models.geschenkt.models import CustomPolicy
+        return CustomPolicy
+    elif env_name in ('coop'):
+        from models.coop.models import CustomPolicy
         return CustomPolicy
     else:
         raise Exception(f'No model architectures found for {env_name}')
