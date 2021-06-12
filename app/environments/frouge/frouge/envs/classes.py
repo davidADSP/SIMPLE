@@ -324,7 +324,11 @@ class Board():
         self._array = value
 
     def get_cell(self,col,row):
-        return self._array[col][row]
+        try:
+            cell = self._array[col][row]
+        except:
+            cell = None
+        return cell
 
     def get_cell_display(self,col,row):
         for p in self._players:

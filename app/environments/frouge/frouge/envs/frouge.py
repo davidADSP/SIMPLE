@@ -117,7 +117,12 @@ class FlammeRougeEnv(gym.Env):
         scores = [ (max((p.r_position.col*3-p.r_position.row),(p.s_position.col*3-p.s_position.row)),p) for p in self.board.players]
         scores.sort(key=lambda item: item[0])
         for i, s in enumerate(scores):
-            reward[s[1].n - 1] = (2 / self.n_players)*i - 1 + (1 / self.n_players)
+            if i < self.n_players - 1:
+                reward[s[1].n - 1] = -1.0/(self.n_players - 1)
+            else:
+                reward[s[1].n - 1] = 1.0
+        
+
         return reward
 
 
@@ -196,7 +201,7 @@ class FlammeRougeEnv(gym.Env):
         # check move legality
         if self.legal_actions[action] == 0:
             reward = [1.0/(self.n_players-1)] * self.n_players
-            reward[self.current_player_num] = -1
+            reward[self.current_player_num] = -1.0
             done = True
 
         else:
