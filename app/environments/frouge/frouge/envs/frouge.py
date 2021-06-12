@@ -34,7 +34,7 @@ class FlammeRougeEnv(gym.Env):
         #action space = all possible couples of rouleur and sprinter cards = card_types/2 * card_types/2
         self.action_space = gym.spaces.Discrete(int(card_types*card_types/4))
         #observation space = board + current player played cards + current player discarded cards + other player played cards + current player hand (+action_space)
-        self.observation_space = gym.spaces.Box(0, 1, (MAX_BOARD_SIZE + card_types * self.n_players + 2*card_types + self.action_space.n, 3, (MAX_CODE + 2*self.n_players)))
+        self.observation_space = gym.spaces.Box(0, 1, (MAX_BOARD_SIZE, 3, (MAX_CODE + 2*self.n_players) + card_types * self.n_players + 2*card_types + self.action_space.n))
         self.verbose = verbose
 
         
@@ -57,28 +57,37 @@ class FlammeRougeEnv(gym.Env):
         obs = board_array
         #add current player played cards
         deck = np.add(self.current_player.r_played.array(),self.current_player.s_played.array())
-        deck.resize(len(ALL_CARDS),3,cell_dim_size)
-        obs = np.append(obs,deck,axis=0)
+        deck = np.expand_dims(deck, [0,1])
+        deck = np.repeat(deck, MAX_BOARD_SIZE, axis = 0)
+        deck = np.repeat(deck, 3, axis = 1)
+        obs = np.append(obs,deck,axis=2)
         #add other player played cards
         for player_num in range(self.n_players):
             if player_num != self.current_player_num:
                 player = self.board.players[player_num]
                 deck = np.add(player.r_played.array(),player.s_played.array())
-                deck.resize(len(ALL_CARDS),3,cell_dim_size)
-                obs = np.append(obs,deck,axis=0)
+                deck = np.expand_dims(deck, [0,1])
+                deck = np.repeat(deck, MAX_BOARD_SIZE, axis = 0)
+                deck = np.repeat(deck, 3, axis = 1)
+                obs = np.append(obs,deck,axis=2)
         #add current player discarded cards
         deck = np.add(self.current_player.r_discard.array(),self.current_player.s_discard.array())
-        deck.resize(len(ALL_CARDS),3,cell_dim_size)
-        obs = np.append(obs,deck,axis=0)
-        #add player's hand
+        deck = np.expand_dims(deck, [0,1])
+        deck = np.repeat(deck, MAX_BOARD_SIZE, axis = 0)
+        deck = np.repeat(deck, 3, axis = 1)
+        obs = np.append(obs,deck,axis=2)
+        #add player's hand #TODO at the moment cards are being added - better to treat S and R cards separately?
         hand = np.add(self.current_player.r_hand.array(),self.current_player.s_hand.array())
-        hand.resize(len(ALL_CARDS),3,cell_dim_size)
-        obs = np.append(obs,hand,axis=0)
+        hand = np.expand_dims(hand, [0,1])
+        hand = np.repeat(hand, MAX_BOARD_SIZE, axis = 0)
+        hand = np.repeat(hand, 3, axis = 1)
+        obs = np.append(obs,hand,axis=2)
         #pipe legal actions
         actions = self.legal_actions
-        actions = np.append(actions[...,np.newaxis],np.zeros((self.action_space.n,2)),axis=1)
-        actions = np.append(actions[...,np.newaxis],np.zeros((self.action_space.n,3,cell_dim_size-1)),axis=2)
-        obs = np.append(obs,actions,axis=0)
+        actions = np.expand_dims(actions, [0,1])
+        actions = np.repeat(actions, MAX_BOARD_SIZE, axis = 0)
+        actions = np.repeat(actions, 3, axis = 1)
+        obs = np.append(obs,actions,axis=2)
 
         return obs
 
