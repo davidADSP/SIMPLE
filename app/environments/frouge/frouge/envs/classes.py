@@ -18,14 +18,17 @@ CORSO_PASEO_24 = "abcdefghijklmnopqrstu"
 FIRENZE_24 = "abcgiDHqntmKQLrepJsfu"
 MONTAGNE_24 = "abcfimetKGLHJsdopRQNU"
 WEVELGEM_24 = "abcmgfteqonLPjkIDHrSu"
+AVENUE_CORSO_PASEO = "abcdefghijklmnopqrstu"
+
 
 ALL_BOARDS = [
-    BOARD_stage7_56,
-    BOARD_stage8_56,
-    BOARD_stage9_56,
-    BOARD_stage11_56,
-    BOARD_stage12_56,
-    BOARD_stage18_56,
+    # BOARD_stage7_56,
+    # BOARD_stage8_56,
+    # BOARD_stage9_56,
+    # BOARD_stage11_56,
+    # BOARD_stage12_56,
+    # BOARD_stage18_56,
+    AVENUE_CORSO_PASEO
 ]
 
 MAX_BOARD_SIZE = 120

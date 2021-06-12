@@ -27,7 +27,7 @@ class FlammeRougeEnv(gym.Env):
         self.name = 'frouge'
         self.manual = manual
         
-        self.n_players = 5
+        self.n_players = 2
         self.board = None
         
         card_types = len(ALL_CARDS)
@@ -359,4 +359,4 @@ class FlammeRougeEnv(gym.Env):
             logger.debug(f'\n\nGAME OVER')
             
     def rules_move(self):
-        raise Exception('Rules based agent is not yet implemented for Sushi Go!')
+        raise Exception('Rules based agent is not yet implemented for Flamme Rouge!')
