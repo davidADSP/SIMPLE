@@ -240,6 +240,7 @@ class FlammeRougeEnv(gym.Env):
         self.draw_card()
         #reset current player
         self.current_player_num = 0
+        self.turns_taken += 1
 
     def set_start_positions(self):
         #build cyclists list
@@ -283,6 +284,7 @@ class FlammeRougeEnv(gym.Env):
             self.board.add_player(player)
             player_id += 1
         self.current_player_num = 0
+        self.turns_taken = 0
 
         #TODO add initial position in learning
         self.set_start_positions()
@@ -366,7 +368,7 @@ class FlammeRougeEnv(gym.Env):
                 logger.debug(f'{line}               ')
             #clear remaining lines
             for i in range(20):
-                logger.debug(' '*120)
+                logger.debug(' ' * MAX_BOARD_SIZE)
             logger.debug('\033[20A')
 
         if self.done:

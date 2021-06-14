@@ -296,7 +296,7 @@ class Board():
                 self._array.append(self.code(cell))
         #padding
         for i in range(MAX_BOARD_SIZE - len(self._array)):
-            self._array.append([ list(CV), list(CV), list(CV) ])
+            self._array.append([ list(CF), list(CF), list(CF) ])
     
     def add_player(self,player):
         self._players.append(player)
