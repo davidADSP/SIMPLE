@@ -27,7 +27,7 @@ class FlammeRougeEnv(gym.Env):
         self.name = 'frouge'
         self.manual = manual
         
-        self.n_players = 2
+        self.n_players = 5
         self.board = None
         
         card_types = len(ALL_CARDS)
