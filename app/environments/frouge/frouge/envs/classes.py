@@ -18,6 +18,8 @@ CORSO_PASEO_24 = "abcdefghijklmnopqrstu"
 FIRENZE_24 = "abcgiDHqntmKQLrepJsfu"
 MONTAGNE_24 = "abcfimetKGLHJsdopRQNU"
 WEVELGEM_24 = "abcmgfteqonLPjkIDHrSu"
+AVENUE_CORSO_PASEO = "abcdefghijklmnopqrstu"
+
 
 ALL_BOARDS = [
     BOARD_stage7_56,
@@ -26,6 +28,7 @@ ALL_BOARDS = [
     BOARD_stage11_56,
     BOARD_stage12_56,
     BOARD_stage18_56,
+    # AVENUE_CORSO_PASEO
 ]
 
 MAX_BOARD_SIZE = 120
@@ -293,7 +296,7 @@ class Board():
                 self._array.append(self.code(cell))
         #padding
         for i in range(MAX_BOARD_SIZE - len(self._array)):
-            self._array.append([ list(CV), list(CV), list(CV) ])
+            self._array.append([ list(CF), list(CF), list(CF) ])
     
     def add_player(self,player):
         self._players.append(player)
@@ -321,7 +324,11 @@ class Board():
         self._array = value
 
     def get_cell(self,col,row):
-        return self._array[col][row]
+        try:
+            cell = self._array[col][row]
+        except:
+            cell = None
+        return cell
 
     def get_cell_display(self,col,row):
         for p in self._players:

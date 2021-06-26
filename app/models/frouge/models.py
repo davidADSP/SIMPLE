@@ -22,7 +22,7 @@ class CustomPolicy(ActorCriticPolicy):
 
             extracted_features = resnet_extractor(obs, **kwargs)
 
-            self._policy = policy_head(extracted_features, legal_actions[:,:,0,0])
+            self._policy = policy_head(extracted_features, legal_actions)
             self._value_fn, self.q_value = value_head(extracted_features)
             self._proba_distribution  = CategoricalProbabilityDistribution(self._policy)
 
@@ -44,14 +44,16 @@ class CustomPolicy(ActorCriticPolicy):
         return self.sess.run(self.value_flat, {self.obs_ph: obs})
 
 
-def split_input(obs, split):
-    return   obs[:,:-split], obs[:,-split:]
+def split_input(processed_obs, split):
+    obs = processed_obs[...,:-split]
+    legal_actions = K.mean(processed_obs[...,-split:], axis = (1,2))
+    return  obs, legal_actions 
 
 
 def value_head(y):
 
     y = Flatten()(y)
-    y = dense(y,FEATURE_SIZE)
+    y = dense(y,FEATURE_SIZE, batch_norm = True)
 
     vf = dense(y, 1, batch_norm = False, activation = 'tanh', name='vf')
     q = dense(y, ACTIONS, batch_norm = False, activation = 'tanh', name='q')
@@ -61,7 +63,7 @@ def value_head(y):
 def policy_head(y, legal_actions):
 
     y = Flatten()(y)
-    y = dense(y,FEATURE_SIZE)
+    y = dense(y,FEATURE_SIZE, batch_norm = True)
 
     policy = dense(y, ACTIONS, batch_norm = False, activation = None, name='pi')
     
@@ -73,9 +75,10 @@ def policy_head(y, legal_actions):
 
 def resnet_extractor(y, **kwargs):
 
-    y = convolutional(y, int(FEATURE_SIZE/2), 3, batch_norm = True, activation=None)
-    y = residual(y, int(FEATURE_SIZE/2), 9)
-
+    y = convolutional(y, FEATURE_SIZE, 3, batch_norm = True)
+    y = residual(y, FEATURE_SIZE, 3, batch_norm = True)
+    y = residual(y, FEATURE_SIZE, 3, batch_norm = True)
+    y = residual(y, FEATURE_SIZE, 3, batch_norm = True)
     return y
 
 
@@ -88,12 +91,12 @@ def convolutional(y, filters, kernel_size, batch_norm = False, activation = 'rel
     return y
 
 
-def residual(y, filters, kernel_size):
+def residual(y, filters, kernel_size, batch_norm):
     shortcut = y
 
-    y = convolutional(y,filters, kernel_size=kernel_size)
+    y = convolutional(y,filters, kernel_size=kernel_size, batch_norm = batch_norm)
 
-    y = convolutional(y,filters, kernel_size=kernel_size, activation=None)
+    y = convolutional(y,filters, kernel_size=kernel_size, batch_norm = batch_norm, activation=None)
     y = Add()([shortcut, y])
     y = Activation('relu')(y)
 

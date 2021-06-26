@@ -71,9 +71,9 @@ def load_model(env, name):
 
                 cont = False
             except IOError as e:
-                sys.exit(f'Permissions not granted on zoo/{env.name}/...')
+                sys.exit(f'Check zoo/{env.name}/ exists and read/write permission granted to user')
             except Exception as e:
-                print('Waiting for base.zip to be created...')
+                logger.error(e)
                 time.sleep(2)
                 
     else:
