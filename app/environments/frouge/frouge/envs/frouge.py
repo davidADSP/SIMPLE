@@ -11,6 +11,10 @@ from stable_baselines import logger
 
 from .classes import *
 
+
+#TODO network decides where to place players at start of game
+#TODO need to split decision into S and R cards
+
 PLAYER_COLOR_MAP = {
                 "1" : "91",
                 "2" : "92",

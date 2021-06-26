@@ -1,4 +1,4 @@
-# bash ./scripts/eval.sh --step --games  --include_other_models --include_rules_based --best_moves --env
+# bash ./scripts/eval_2_player.sh --step --games  --include_other_models --include_rules_based --best_moves --env
 
 if [ $5 == 1 ]
 then
