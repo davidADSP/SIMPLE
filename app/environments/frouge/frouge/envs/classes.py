@@ -18,7 +18,6 @@ CORSO_PASEO_24 = "abcdefghijklmnopqrstu"
 FIRENZE_24 = "abcgiDHqntmKQLrepJsfu"
 MONTAGNE_24 = "abcfimetKGLHJsdopRQNU"
 WEVELGEM_24 = "abcmgfteqonLPjkIDHrSu"
-AVENUE_CORSO_PASEO = "abcdefghijklmnopqrstu"
 
 
 ALL_BOARDS = [
@@ -28,10 +27,10 @@ ALL_BOARDS = [
     BOARD_stage11_56,
     BOARD_stage12_56,
     BOARD_stage18_56,
-    # AVENUE_CORSO_PASEO
 ]
 
 MAX_BOARD_SIZE = 120
+MAX_START_SPACES = 15
 
 TILES = {
     "a" : ["s"] * 5 + ["n"],
@@ -345,6 +344,11 @@ class Board():
                 break
             else:
                 col, row = self.previous_cell(col,row)
+
+        self.set_cycl_to_square(player_id,c_type, col, row)
+
+
+    def set_cycl_to_square(self,player_id,c_type, col, row):
         self._players[player_id-1].c_pos(c_type).col = col
         self._players[player_id-1].c_pos(c_type).row = row
 

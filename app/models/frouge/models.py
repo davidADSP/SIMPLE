@@ -8,7 +8,7 @@ import tensorflow.keras.backend as K
 from stable_baselines.common.policies import ActorCriticPolicy
 from stable_baselines.common.distributions import CategoricalProbabilityDistribution
 
-ACTIONS = 36
+ACTIONS = 29
 FEATURE_SIZE = 64
 
 
