@@ -109,7 +109,7 @@ class FlammeRougeEnv(gym.Env):
             for i in range(MAX_START_SPACES):
                 col = i // 3
                 row = i % 3
-                if self.board.get_cell(col, row) != CV and self.board.is_empty(col, row):
+                if self.board.get_cell(col, row) == CS and self.board.is_empty(col, row):
                     legal_actions[len(ALL_CARDS) + 2 + i] = 1
         else:
             raise Exception(f'Invalid phase: {self.phase}')
