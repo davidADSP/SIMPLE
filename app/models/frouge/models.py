@@ -53,7 +53,7 @@ def split_input(processed_obs, split):
 def value_head(y):
 
     y = Flatten()(y)
-    y = dense(y,FEATURE_SIZE, batch_norm = True)
+    y = dense(y,FEATURE_SIZE, batch_norm = False)
 
     vf = dense(y, 1, batch_norm = False, activation = 'tanh', name='vf')
     q = dense(y, ACTIONS, batch_norm = False, activation = 'tanh', name='q')
@@ -63,7 +63,7 @@ def value_head(y):
 def policy_head(y, legal_actions):
 
     y = Flatten()(y)
-    y = dense(y,FEATURE_SIZE, batch_norm = True)
+    y = dense(y,FEATURE_SIZE, batch_norm = False)
 
     policy = dense(y, ACTIONS, batch_norm = False, activation = None, name='pi')
     
@@ -75,10 +75,10 @@ def policy_head(y, legal_actions):
 
 def resnet_extractor(y, **kwargs):
 
-    y = convolutional(y, FEATURE_SIZE, 3, batch_norm = True)
-    y = residual(y, FEATURE_SIZE, 3, batch_norm = True)
-    y = residual(y, FEATURE_SIZE, 3, batch_norm = True)
-    y = residual(y, FEATURE_SIZE, 3, batch_norm = True)
+    y = convolutional(y, FEATURE_SIZE, 3, batch_norm = False)
+    y = residual(y, FEATURE_SIZE, 3, batch_norm = False)
+    y = residual(y, FEATURE_SIZE, 3, batch_norm = False)
+    y = residual(y, FEATURE_SIZE, 3, batch_norm = False)
     return y
 
 

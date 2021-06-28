@@ -29,7 +29,7 @@ class FlammeRougeEnv(gym.Env):
         self.name = 'frouge'
         self.manual = manual
         
-        self.n_players = 2
+        self.n_players = 5
         self.board = None
         
         card_types = len(ALL_CARDS)
@@ -109,7 +109,7 @@ class FlammeRougeEnv(gym.Env):
             for i in range(MAX_START_SPACES):
                 col = i // 3
                 row = i % 3
-                if self.board.is_empty(col, row):
+                if self.board.get_cell(col, row) != CV and self.board.is_empty(col, row):
                     legal_actions[len(ALL_CARDS) + 2 + i] = 1
         else:
             raise Exception(f'Invalid phase: {self.phase}')
@@ -238,12 +238,8 @@ class FlammeRougeEnv(gym.Env):
 
         # check move legality
         if self.legal_actions[action] == 0:
-            reward = [1.0/(self.n_players-1)] * self.n_players
-            reward[self.current_player_num] = -1.0
-            done = True
-
+            raise Exception(f'Illegal action {action} : Legal actions {legal_actions}')
         else:
-            
             if self.phase == 0: # initial cyclist positioning (start with sprinter)
                 c_type, col, row = self.from_action_to_starting_position(action)
                 self.board.set_cycl_to_square(self.current_player.n, c_type, col, row)
@@ -398,20 +394,20 @@ class FlammeRougeEnv(gym.Env):
                     if cell == CV:
                         line += f'{content} '
                     else:
-                        if cell == CC:
-                            color = "101"
-                        if cell == CD:
-                            color = "44"
-                        if cell == CP:
-                            color = "43"
-                        if cell == CSU:
-                            color = "46"
-                        if cell == CS:
-                            color = "100"
-                        if cell == CF:
-                            color = "100"
-                        if cell == CN:
-                            color = "49"
+                        if cell == CC: # climb
+                            color = "101" # light red
+                        if cell == CD: # descent
+                            color = "44" # blue
+                        if cell == CP: # paved
+                            color = "43" # yellow
+                        if cell == CSU: # supply cell
+                            color = "46" # cyan
+                        if cell == CS: # start
+                            color = "100" # gray
+                        if cell == CF: # finish
+                            color = "100" # gray
+                        if cell == CN: #normal
+                            color = "49" # black
                         line += f'\033[{player_color}{color};5m{content}\033[0m|'
                 logger.debug(line)
             logger.debug("---"*line_size)

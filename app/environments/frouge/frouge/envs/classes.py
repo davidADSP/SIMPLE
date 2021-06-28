@@ -32,6 +32,14 @@ ALL_BOARDS = [
 MAX_BOARD_SIZE = 120
 MAX_START_SPACES = 15
 
+
+# s = start
+# n = normal
+# d = descent
+# c = climb
+# f = finish
+# p = paved
+# su = supply unit
 TILES = {
     "a" : ["s"] * 5 + ["n"],
     "A" : ["s"] * 4 + ["n"]*2,
