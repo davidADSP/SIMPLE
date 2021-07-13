@@ -18,7 +18,6 @@ CORSO_PASEO_24 = "abcdefghijklmnopqrstu"
 FIRENZE_24 = "abcgiDHqntmKQLrepJsfu"
 MONTAGNE_24 = "abcfimetKGLHJsdopRQNU"
 WEVELGEM_24 = "abcmgfteqonLPjkIDHrSu"
-AVENUE_CORSO_PASEO = "abcdefghijklmnopqrstu"
 
 
 ALL_BOARDS = [
@@ -28,11 +27,20 @@ ALL_BOARDS = [
     BOARD_stage11_56,
     BOARD_stage12_56,
     BOARD_stage18_56,
-    # AVENUE_CORSO_PASEO
+    # CORSO_PASEO_24
 ]
 
 MAX_BOARD_SIZE = 120
+MAX_START_SPACES = 15
 
+
+# s = start
+# n = normal
+# d = descent
+# c = climb
+# f = finish
+# p = paved
+# su = supply unit
 TILES = {
     "a" : ["s"] * 5 + ["n"],
     "A" : ["s"] * 4 + ["n"]*2,
@@ -156,6 +164,7 @@ class Player():
         self.r_position = Position()
         self.r_chosen = None
         self.r_chosen = None
+        self.hand_order = ['r', 's']
     
     def c_pos(self,cyclist):
         if cyclist == "r":
@@ -258,7 +267,7 @@ class Deck():
     def array(self):
         array = [ 0 ] * len(ALL_CARDS)
         for card in self.cards:
-            array[ALL_CARDS.index(card)] += 0.33
+            array[ALL_CARDS.index(card)] += 0.1
         return array
 
 class Card():
@@ -345,6 +354,11 @@ class Board():
                 break
             else:
                 col, row = self.previous_cell(col,row)
+
+        self.set_cycl_to_square(player_id,c_type, col, row)
+
+
+    def set_cycl_to_square(self,player_id,c_type, col, row):
         self._players[player_id-1].c_pos(c_type).col = col
         self._players[player_id-1].c_pos(c_type).row = row
 
@@ -391,7 +405,7 @@ ALL_CARDS = [
         Card("Rouleur 5",5),
         Card("Rouleur 6",6),
         Card("Rouleur 7",7),
-        Card("Rouler penalty",2),
+        Card("Rouleur penalty",2),
         ]
 
 SPRINTER_CARDS = \

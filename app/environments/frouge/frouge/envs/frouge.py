@@ -8,12 +8,11 @@ from functools import cmp_to_key
 import config
 
 from stable_baselines import logger
+from stable_baselines.common import set_global_seeds
 
 from .classes import *
 
 
-#TODO network decides where to place players at start of game
-#TODO need to split decision into S and R cards
 
 PLAYER_COLOR_MAP = {
                 "1" : "91",
@@ -35,8 +34,9 @@ class FlammeRougeEnv(gym.Env):
         self.board = None
         
         card_types = len(ALL_CARDS)
-        #action space = all possible couples of rouleur and sprinter cards = card_types/2 * card_types/2
-        self.action_space = gym.spaces.Discrete(int(card_types*card_types/4))
+        #action space = all possible rouleur and sprinter cards = card_types
+        # + 2 choices of deck, + starting space choices
+        self.action_space = gym.spaces.Discrete(card_types + 2 + MAX_START_SPACES)
         #observation space = board + current player played cards + current player discarded cards + other player played cards + current player hand (+action_space)
         self.observation_space = gym.spaces.Box(0, 1, (MAX_BOARD_SIZE, 3, (MAX_CODE + 2*self.n_players) + card_types * self.n_players + 2*card_types + self.action_space.n))
         self.verbose = verbose
@@ -80,7 +80,7 @@ class FlammeRougeEnv(gym.Env):
         deck = np.repeat(deck, MAX_BOARD_SIZE, axis = 0)
         deck = np.repeat(deck, 3, axis = 1)
         obs = np.append(obs,deck,axis=2)
-        #add player's hand #TODO at the moment cards are being added - better to treat S and R cards separately?
+        #add player's hand
         hand = np.add(self.current_player.r_hand.array(),self.current_player.s_hand.array())
         hand = np.expand_dims(hand, [0,1])
         hand = np.repeat(hand, MAX_BOARD_SIZE, axis = 0)
@@ -97,23 +97,58 @@ class FlammeRougeEnv(gym.Env):
 
     @property
     def legal_actions(self):
-        my_player = self.current_player
         legal_actions = np.zeros(self.action_space.n)
-        for i in range(self.action_space.n):
-            r_card_index = int(i / (len(ALL_CARDS)/2)) 
-            s_card_index = i % int(len(ALL_CARDS)/2)
-            if my_player.r_hand.array()[r_card_index+int(len(ALL_CARDS)/2)] > 0:
-                if my_player.s_hand.array()[s_card_index] > 0:
+        if self.phase == 2:
+            cyclist = self.current_player.hand_order[self.hand_number]
+            for i in range(len(ALL_CARDS)):
+                if self.current_player.c_hand(cyclist).array()[i] > 0:
                     legal_actions[i] = 1
+
+        elif self.phase == 1:
+            legal_actions[len(ALL_CARDS):(len(ALL_CARDS)+2)] = 1
+        elif self.phase == 0:
+            for i in range(MAX_START_SPACES):
+                col = i // 3
+                row = i % 3
+                if self.board.get_cell(col, row) == CS and self.board.is_empty(col, row):
+                    legal_actions[len(ALL_CARDS) + 2 + i] = 1
+        else:
+            raise Exception(f'Invalid phase: {self.phase}')
+
+
         return legal_actions
 
-    def from_action_to_cards(self,action):
-        r_card = ALL_CARDS[int(action / (len(ALL_CARDS)/2)) + int(len(ALL_CARDS)/2) ]
-        s_card = ALL_CARDS[(action % int(len(ALL_CARDS)/2))]
-        return (r_card, s_card)
+    def from_action_to_card(self,action):
+        card = ALL_CARDS[action]
+        return card
 
-    def from_cards_to_action(self,r_card,s_card):
-        return (ALL_CARDS.index(r_card)-int(len(ALL_CARDS)/2))*int(len(ALL_CARDS)/2)+ALL_CARDS.index(s_card)
+    def from_card_to_action(self,card):
+        return ALL_CARDS.index(card)
+
+
+    def from_action_to_starting_position(self, action):
+        action = action - len(ALL_CARDS) - 2
+        
+        if self.current_player.s_position.col == -1:
+            c_type = 's'
+        else:
+            c_type = 'r'
+
+        col = action // 3
+        row = action % 3
+
+        return c_type, col, row
+
+    def from_action_to_hand_order(self, action):
+        action  = action - len(ALL_CARDS)
+
+        if action == 0:
+            hand_order = ['s', 'r']
+        else:
+            hand_order = ['r', 's']
+
+        return hand_order
+
 
 
     def score_game(self):
@@ -204,27 +239,65 @@ class FlammeRougeEnv(gym.Env):
 
         # check move legality
         if self.legal_actions[action] == 0:
-            reward = [1.0/(self.n_players-1)] * self.n_players
-            reward[self.current_player_num] = -1.0
-            done = True
-
+            raise Exception(f'Illegal action {action} : Legal actions {self.legal_actions}')
         else:
-            #record action to process them afterwards
-            r_card, s_card = self.from_action_to_cards(action)
-            self.current_player.r_chosen = r_card
-            self.current_player.s_chosen = s_card
-            #change player
-            self.current_player_num += 1
-            if self.current_player_num == self.n_players:
-                self.resolve_turn()
+            if self.phase == 0: # initial cyclist positioning (start with sprinter)
+                c_type, col, row = self.from_action_to_starting_position(action)
+                self.board.set_cycl_to_square(self.current_player.n, c_type, col, row)
                 self.render_map()
-                if self.last_turn:
-                    #End of game
-                    reward = self.score_game()
-                    done = True
+                if self.current_player.r_position.col != -1:
+                    #change player
+                    self.current_player_num += 1
+
+                if self.current_player_num == self.n_players:
+                    self.phase = 1
                     self.current_player_num = 0
+            
+            elif self.phase == 1:
+                self.current_player.hand_order = self.from_action_to_hand_order(action)
+                #change player
+                self.current_player_num += 1
+
+                if self.current_player_num == self.n_players:
+                    self.draw_cards()
+                    self.phase = 2
+                    self.current_player_num = 0
+
+
+            elif self.phase == 2:
+
+                #record action to process them afterwards
+                card = self.from_action_to_card(action)
+                if self.current_player.hand_order[self.hand_number] == 'r':  
+                    self.current_player.r_chosen = card
                 else:
-                    self.finish_turn()
+                    self.current_player.s_chosen = card
+
+                #change player
+                self.current_player_num += 1
+
+                if self.current_player_num == self.n_players:
+                    if self.hand_number == 0: #switch to choosing the card from the second hand
+                        self.hand_number = 1
+                        self.draw_cards()
+                        self.current_player_num = 0
+                        
+                    else: #resolve the turn
+                        self.hand_number = 0
+                        self.phase = 1 #2
+                        self.resolve_turn()
+                        self.render_map()
+                        if self.last_turn:
+                            #End of game
+                            reward = self.score_game()
+                            done = True
+                            self.current_player_num = 0
+                        else:
+                            self.finish_turn()
+
+            else:
+                raise Exception(f'Invalid phase: {self.phase}')
+
 
         self.done = done
 
@@ -241,10 +314,13 @@ class FlammeRougeEnv(gym.Env):
             player.s_discard.add(player.s_hand.cards)
             player.r_hand = Deck()
             player.s_hand = Deck()
-        self.draw_card()
+
         #reset current player
         self.current_player_num = 0
+        # self.draw_cards()
         self.turns_taken += 1
+
+
 
     def set_start_positions(self):
         #build cyclists list
@@ -254,29 +330,34 @@ class FlammeRougeEnv(gym.Env):
         first_col = self.board.first_start_col()
         for c in self.cyclists:
             self.board.set_cycl_to_pos(c[0].n,c[1],first_col)
+
+
     
-    def draw_card(self):
+    def draw_cards(self):
         for player in self.board.players:
-            drawn = player.r_deck.draw(4)
-            if len(drawn) < 4:
-                player.r_deck.add(player.r_discard.cards)
-                player.r_discard = Deck()
-                player.r_deck.shuffle()
-                drawn += player.r_deck.draw(4-len(drawn))
-            if len(drawn) == 0:
-                drawn.append(PENALTY_ROULEUR_CARD)
-            player.r_hand.add(drawn)
-            drawn = player.s_deck.draw(4)
-            if len(drawn) < 4:
-                player.s_deck.add(player.s_discard.cards)
-                player.s_discard = Deck()
-                player.s_deck.shuffle()
-                drawn += player.s_deck.draw(4-len(drawn))
-            if len(drawn) == 0:
-                drawn.append(PENALTY_SPRINTER_CARD)
-            player.s_hand.add(drawn)
+            if player.hand_order[self.hand_number] == 'r':
+                drawn = player.r_deck.draw(4)
+                if len(drawn) < 4:
+                    player.r_deck.add(player.r_discard.cards)
+                    player.r_discard = Deck()
+                    player.r_deck.shuffle()
+                    drawn += player.r_deck.draw(4-len(drawn))
+                if len(drawn) == 0:
+                    drawn.append(PENALTY_ROULEUR_CARD)
+                player.r_hand.add(drawn)
+            else:
+                drawn = player.s_deck.draw(4)
+                if len(drawn) < 4:
+                    player.s_deck.add(player.s_discard.cards)
+                    player.s_discard = Deck()
+                    player.s_deck.shuffle()
+                    drawn += player.s_deck.draw(4-len(drawn))
+                if len(drawn) == 0:
+                    drawn.append(PENALTY_SPRINTER_CARD)
+                player.s_hand.add(drawn)
 
     def reset(self):
+        # set_global_seeds(17)
         #pick a random board
         self.board = Board(random.choice(ALL_BOARDS))
         #reset players
@@ -289,23 +370,31 @@ class FlammeRougeEnv(gym.Env):
             player_id += 1
         self.current_player_num = 0
         self.turns_taken = 0
+        
 
-        #TODO add initial position in learning
-        self.set_start_positions()
+        self.phase = 0 #2 # 0 = placing start players, 1 = choosing which hand, 2 = choosing which card
+        self.hand_number = 0
+
+        #build cyclists list
+        self.cyclists = [ (p,"r") for p in self.board.players ] + [ (p,"s") for p in self.board.players ]
+
+        # self.set_start_positions()
+        # self.draw_cards()
 
         self.done = False
         self.last_turn = False
         logger.debug(f'\n\n---- NEW GAME ----')
         self.render_map(first_turn=True)
-        self.draw_card()
+
         return self.observation
 
     def render_map(self,first_turn=False):
 
         #clear screen
-        logger.debug('\033[2J')
-        logger.debug('\033[0;0H')
+        # logger.debug('\033[2J')
+        # logger.debug('\033[0;0H')
         #display board
+        logger.debug('\n')
         line_size = 40
         for i in range(int(len(self.board.array)/line_size)):
             #print line by line
@@ -323,34 +412,36 @@ class FlammeRougeEnv(gym.Env):
                     if cell == CV:
                         line += f'{content} '
                     else:
-                        if cell == CC:
-                            color = "101"
-                        if cell == CD:
-                            color = "44"
-                        if cell == CP:
-                            color = "43"
-                        if cell == CSU:
-                            color = "46"
-                        if cell == CS:
-                            color = "100"
-                        if cell == CF:
-                            color = "100"
-                        if cell == CN:
-                            color = "49"
+                        if cell == CC: # climb
+                            color = "101" # light red
+                        if cell == CD: # descent
+                            color = "44" # blue
+                        if cell == CP: # paved
+                            color = "43" # yellow
+                        if cell == CSU: # supply cell
+                            color = "46" # cyan
+                        if cell == CS: # start
+                            color = "100" # gray
+                        if cell == CF: # finish
+                            color = "100" # gray
+                        if cell == CN: #normal
+                            color = "49" # black
                         line += f'\033[{player_color}{color};5m{content}\033[0m|'
                 logger.debug(line)
             logger.debug("---"*line_size)
-        if not first_turn:
-            #display card played
-            for p in self.board.players:
-                penalty = ""
-                for pen in self.penalty:
-                    if p.n == int(pen[0]):
-                        penalty += "X" + pen[1]
-                logger.debug(f'\033[{PLAYER_COLOR_MAP[str(p.n)]}mPlayer {p.name} played : {p.r_chosen.name} {p.s_chosen.name}   Penalty: {penalty}\033[0m|          ')
-        else:
-            for i in range(len(self.board.players)):
-                logger.debug(' '*line_size*3)
+        if self.phase == 2:
+            if not first_turn:
+                #display card played
+                for p in self.board.players:
+                    penalty = ""
+                    for pen in self.penalty:
+                        if p.n == int(pen[0]):
+                            penalty += "X" + pen[1]
+                    logger.debug(f'\033[{PLAYER_COLOR_MAP[str(p.n)]}mPlayer {p.name} played : {p.r_chosen.name} {p.s_chosen.name}   Penalty: {penalty}\033[0m|          ')
+            else:
+                for i in range(len(self.board.players)):
+                    logger.debug(' '*line_size*3)
+
 
     def render(self, mode='human', close=False):
 
@@ -358,22 +449,27 @@ class FlammeRougeEnv(gym.Env):
             return
         if mode == "human" and not self.done:
             #move cursor
-            logger.debug('\033[18;0H')
+            # logger.debug('\033[18;0H')
             tab_size = 20
-            #display player hands
             p = self.current_player
-            logger.debug(f'\033[{PLAYER_COLOR_MAP[str(p.n)]}mPlayer {p.name}\'s hand\033[0m')
-            line = (" " * tab_size) + "".join([ c.name + " "*len(c.name) for c in p.r_hand.cards ])
-            logger.debug(f'{line}')
-            for s_card in p.s_hand.cards:
-                line = s_card.name
-                for r_card in p.r_hand.cards:
-                    line += " "*(tab_size-4) + str(self.from_cards_to_action(r_card,s_card)) + "  "
-                logger.debug(f'{line}               ')
+
+            if self.phase == 2:
+                #display player hands
+                cyclist = p.hand_order[self.hand_number]
+                logger.debug(f'\033[{PLAYER_COLOR_MAP[str(p.n)]}mPlayer {p.name}\'s {cyclist} hand\033[0m')
+                line = (" " * tab_size) + "".join([ c.name + ' (' + str(self.from_card_to_action(c)) + ')' + " "*len(c.name) for c in p.c_hand(cyclist).cards ])
+                logger.debug(f'{line}')
+
+            elif self.phase == 1:
+                logger.debug(f'\033[{PLAYER_COLOR_MAP[str(p.n)]}mPlayer {p.name} to choose hand\033[0m')
+                logger.debug([index for index, value in enumerate(self.legal_actions) if value == 1])
+            elif self.phase == 0:
+                logger.debug(f'\033[{PLAYER_COLOR_MAP[str(p.n)]}mPlayer {p.name} to place cyclist\033[0m')
+                logger.debug([index for index, value in enumerate(self.legal_actions) if value == 1])
             #clear remaining lines
-            for i in range(20):
-                logger.debug(' ' * MAX_BOARD_SIZE)
-            logger.debug('\033[20A')
+            # for i in range(20):
+            #     logger.debug(' ' * MAX_BOARD_SIZE)
+            # logger.debug('\033[20A')
 
         if self.done:
             logger.debug(f'\n\nGAME OVER')

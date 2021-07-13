@@ -8,7 +8,7 @@ import tensorflow.keras.backend as K
 from stable_baselines.common.policies import ActorCriticPolicy
 from stable_baselines.common.distributions import CategoricalProbabilityDistribution
 
-ACTIONS = 36
+ACTIONS = 29
 FEATURE_SIZE = 64
 
 
@@ -51,9 +51,9 @@ def split_input(processed_obs, split):
 
 
 def value_head(y):
-
+    y = convolutional(y, 4, (1,1), batch_norm = False)
     y = Flatten()(y)
-    y = dense(y,FEATURE_SIZE, batch_norm = True)
+    y = dense(y,FEATURE_SIZE, batch_norm = False)
 
     vf = dense(y, 1, batch_norm = False, activation = 'tanh', name='vf')
     q = dense(y, ACTIONS, batch_norm = False, activation = 'tanh', name='q')
@@ -61,9 +61,9 @@ def value_head(y):
 
 
 def policy_head(y, legal_actions):
-
+    y = convolutional(y, 1, (1,1), batch_norm = False)
     y = Flatten()(y)
-    y = dense(y,FEATURE_SIZE, batch_norm = True)
+    y = dense(y,FEATURE_SIZE, batch_norm = False)
 
     policy = dense(y, ACTIONS, batch_norm = False, activation = None, name='pi')
     
@@ -75,15 +75,13 @@ def policy_head(y, legal_actions):
 
 def resnet_extractor(y, **kwargs):
 
-    y = convolutional(y, FEATURE_SIZE, 3, batch_norm = True)
-    y = residual(y, FEATURE_SIZE, 3, batch_norm = True)
-    y = residual(y, FEATURE_SIZE, 3, batch_norm = True)
-    y = residual(y, FEATURE_SIZE, 3, batch_norm = True)
+    y = convolutional(y, FEATURE_SIZE, (3,3), batch_norm = False, strides = (2,1))
+    y = residual(y, FEATURE_SIZE * 2, (3,3), batch_norm = False, strides = (2,1))
     return y
 
 
-def convolutional(y, filters, kernel_size, batch_norm = False, activation = 'relu'):
-    y = Conv2D(filters, kernel_size=kernel_size, strides=1, padding='same')(y)
+def convolutional(y, filters, kernel_size, batch_norm = False, activation = 'relu', strides = (1,1)):
+    y = Conv2D(filters, kernel_size=kernel_size, strides=strides, padding='same')(y)
     if batch_norm:
         y = BatchNormalization(momentum = 0.9)(y)
     if activation:
@@ -91,13 +89,15 @@ def convolutional(y, filters, kernel_size, batch_norm = False, activation = 'rel
     return y
 
 
-def residual(y, filters, kernel_size, batch_norm):
-    shortcut = y
+def residual(y, filters, kernel_size, batch_norm, strides):
+    shortcut = convolutional(y, filters, kernel_size = (1,1), batch_norm = False, strides = strides)
+    shortcut = convolutional(shortcut, filters, kernel_size = (1,1), batch_norm = False, strides = strides)
 
-    y = convolutional(y,filters, kernel_size=kernel_size, batch_norm = batch_norm)
+    y = convolutional(y,filters, kernel_size=kernel_size, batch_norm = batch_norm, strides = strides)
 
-    y = convolutional(y,filters, kernel_size=kernel_size, batch_norm = batch_norm, activation=None)
+    y = convolutional(y,filters, kernel_size=kernel_size, batch_norm = batch_norm, activation=None, strides = strides)
     y = Add()([shortcut, y])
+
     y = Activation('relu')(y)
 
     return y

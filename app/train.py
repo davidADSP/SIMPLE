@@ -21,7 +21,7 @@ from stable_baselines.common import set_global_seeds
 from stable_baselines import logger
 
 from utils.callbacks import SelfPlayCallback
-from utils.files import reset_files
+from utils.files import reset_logs, reset_models
 from utils.register import get_network_arch, get_environment
 from utils.selfplay import selfplay_wrapper
 
@@ -38,8 +38,9 @@ def main(args):
       os.makedirs(model_dir)
     except:
       pass
+    reset_logs(model_dir)
     if args.reset:
-      reset_files(model_dir)
+      reset_models(model_dir)
     logger.configure(config.LOGDIR)
   else:
     logger.configure(format_strs=[])
@@ -147,6 +148,7 @@ def cli() -> None:
               , help="Which gym environment to train in: tictactoe, connect4, sushigo, butterfly, geschenkt, frouge")
   parser.add_argument("--seed", "-s",  type = int, default = 17
             , help="Random seed")
+
   parser.add_argument("--eval_freq", "-ef",  type = int, default = 10240
             , help="How many timesteps should each actor contribute before the agent is evaluated?")
   parser.add_argument("--n_eval_episodes", "-ne",  type = int, default = 100
@@ -161,12 +163,14 @@ def cli() -> None:
             , help="The clip paramater in PPO")
   parser.add_argument("--entcoeff", "-ent",  type = float, default = 0.1
             , help="The entropy coefficient in PPO")
+
   parser.add_argument("--optim_epochs", "-oe",  type = int, default = 4
             , help="The number of epoch to train the PPO agent per batch")
   parser.add_argument("--optim_stepsize", "-os",  type = float, default = 0.0003
             , help="The step size for the PPO optimiser")
   parser.add_argument("--optim_batchsize", "-ob",  type = int, default = 1024
             , help="The minibatch size in the PPO optimiser")
+            
   parser.add_argument("--lam", "-l",  type = float, default = 0.95
             , help="The value of lambda in PPO")
   parser.add_argument("--adam_epsilon", "-a",  type = float, default = 1e-05
