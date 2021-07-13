@@ -27,6 +27,7 @@ ALL_BOARDS = [
     BOARD_stage11_56,
     BOARD_stage12_56,
     BOARD_stage18_56,
+    # CORSO_PASEO_24
 ]
 
 MAX_BOARD_SIZE = 120
@@ -163,6 +164,7 @@ class Player():
         self.r_position = Position()
         self.r_chosen = None
         self.r_chosen = None
+        self.hand_order = ['r', 's']
     
     def c_pos(self,cyclist):
         if cyclist == "r":
@@ -265,7 +267,7 @@ class Deck():
     def array(self):
         array = [ 0 ] * len(ALL_CARDS)
         for card in self.cards:
-            array[ALL_CARDS.index(card)] += 0.33
+            array[ALL_CARDS.index(card)] += 0.1
         return array
 
 class Card():
@@ -403,7 +405,7 @@ ALL_CARDS = [
         Card("Rouleur 5",5),
         Card("Rouleur 6",6),
         Card("Rouleur 7",7),
-        Card("Rouler penalty",2),
+        Card("Rouleur penalty",2),
         ]
 
 SPRINTER_CARDS = \

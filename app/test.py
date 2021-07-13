@@ -11,6 +11,7 @@ import random
 import argparse
 
 from stable_baselines import logger
+from stable_baselines.common import set_global_seeds
 
 from utils.files import load_model, write_results
 from utils.register import get_environment
@@ -31,6 +32,7 @@ def main(args):
   #make environment
   env = get_environment(args.env_name)(verbose = args.verbose, manual = args.manual)
   env.seed(args.seed)
+  set_global_seeds(args.seed)
 
   total_rewards = {}
 

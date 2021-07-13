@@ -8,6 +8,7 @@ from functools import cmp_to_key
 import config
 
 from stable_baselines import logger
+from stable_baselines.common import set_global_seeds
 
 from .classes import *
 
@@ -238,7 +239,7 @@ class FlammeRougeEnv(gym.Env):
 
         # check move legality
         if self.legal_actions[action] == 0:
-            raise Exception(f'Illegal action {action} : Legal actions {legal_actions}')
+            raise Exception(f'Illegal action {action} : Legal actions {self.legal_actions}')
         else:
             if self.phase == 0: # initial cyclist positioning (start with sprinter)
                 c_type, col, row = self.from_action_to_starting_position(action)
@@ -276,14 +277,14 @@ class FlammeRougeEnv(gym.Env):
                 self.current_player_num += 1
 
                 if self.current_player_num == self.n_players:
-                    if self.hand_number == 0:
+                    if self.hand_number == 0: #switch to choosing the card from the second hand
                         self.hand_number = 1
                         self.draw_cards()
                         self.current_player_num = 0
                         
-                    else:
+                    else: #resolve the turn
                         self.hand_number = 0
-                        self.phase = 1
+                        self.phase = 1 #2
                         self.resolve_turn()
                         self.render_map()
                         if self.last_turn:
@@ -316,7 +317,19 @@ class FlammeRougeEnv(gym.Env):
 
         #reset current player
         self.current_player_num = 0
+        # self.draw_cards()
         self.turns_taken += 1
+
+
+
+    def set_start_positions(self):
+        #build cyclists list
+        self.cyclists = [ (p,"r") for p in self.board.players ] + [ (p,"s") for p in self.board.players ]
+        #shuffle
+        random.shuffle(self.cyclists)
+        first_col = self.board.first_start_col()
+        for c in self.cyclists:
+            self.board.set_cycl_to_pos(c[0].n,c[1],first_col)
 
 
     
@@ -344,6 +357,7 @@ class FlammeRougeEnv(gym.Env):
                 player.s_hand.add(drawn)
 
     def reset(self):
+        # set_global_seeds(17)
         #pick a random board
         self.board = Board(random.choice(ALL_BOARDS))
         #reset players
@@ -358,11 +372,14 @@ class FlammeRougeEnv(gym.Env):
         self.turns_taken = 0
         
 
-        self.phase = 0 # 0 = placing start players, 1 = choosing which hand, 2 = choosing which card
+        self.phase = 0 #2 # 0 = placing start players, 1 = choosing which hand, 2 = choosing which card
         self.hand_number = 0
 
         #build cyclists list
         self.cyclists = [ (p,"r") for p in self.board.players ] + [ (p,"s") for p in self.board.players ]
+
+        # self.set_start_positions()
+        # self.draw_cards()
 
         self.done = False
         self.last_turn = False
@@ -374,9 +391,10 @@ class FlammeRougeEnv(gym.Env):
     def render_map(self,first_turn=False):
 
         #clear screen
-        logger.debug('\033[2J')
-        logger.debug('\033[0;0H')
+        # logger.debug('\033[2J')
+        # logger.debug('\033[0;0H')
         #display board
+        logger.debug('\n')
         line_size = 40
         for i in range(int(len(self.board.array)/line_size)):
             #print line by line
@@ -431,25 +449,27 @@ class FlammeRougeEnv(gym.Env):
             return
         if mode == "human" and not self.done:
             #move cursor
-            logger.debug('\033[18;0H')
+            # logger.debug('\033[18;0H')
             tab_size = 20
+            p = self.current_player
 
             if self.phase == 2:
                 #display player hands
-                p = self.current_player
                 cyclist = p.hand_order[self.hand_number]
                 logger.debug(f'\033[{PLAYER_COLOR_MAP[str(p.n)]}mPlayer {p.name}\'s {cyclist} hand\033[0m')
                 line = (" " * tab_size) + "".join([ c.name + ' (' + str(self.from_card_to_action(c)) + ')' + " "*len(c.name) for c in p.c_hand(cyclist).cards ])
                 logger.debug(f'{line}')
 
             elif self.phase == 1:
+                logger.debug(f'\033[{PLAYER_COLOR_MAP[str(p.n)]}mPlayer {p.name} to choose hand\033[0m')
                 logger.debug([index for index, value in enumerate(self.legal_actions) if value == 1])
             elif self.phase == 0:
+                logger.debug(f'\033[{PLAYER_COLOR_MAP[str(p.n)]}mPlayer {p.name} to place cyclist\033[0m')
                 logger.debug([index for index, value in enumerate(self.legal_actions) if value == 1])
             #clear remaining lines
-            for i in range(20):
-                logger.debug(' ' * MAX_BOARD_SIZE)
-            logger.debug('\033[20A')
+            # for i in range(20):
+            #     logger.debug(' ' * MAX_BOARD_SIZE)
+            # logger.debug('\033[20A')
 
         if self.done:
             logger.debug(f'\n\nGAME OVER')

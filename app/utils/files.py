@@ -117,7 +117,7 @@ def get_model_stats(filename):
     return generation, timesteps, best_rules_based, best_reward
 
 
-def reset_files(model_dir):
+def reset_logs(model_dir):
     try:
         filelist = [ f for f in os.listdir(config.LOGDIR) if f not in ['.gitignore']]
         for f in filelist:
@@ -130,10 +130,16 @@ def reset_files(model_dir):
         
         open(os.path.join(config.LOGDIR, 'log.txt'), 'a').close()
     
+        
+    except Exception as e :
+        print(e)
+        print('Reset logs failed')
+
+def reset_models(model_dir):
+    try:
         filelist = [ f for f in os.listdir(model_dir) if f not in ['.gitignore']]
         for f in filelist:
             os.remove(os.path.join(model_dir , f))
     except Exception as e :
         print(e)
-        print('Reset files failed')
-
+        print('Reset models failed')
