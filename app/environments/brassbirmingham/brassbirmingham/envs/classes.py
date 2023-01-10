@@ -125,11 +125,8 @@ class Building():
         self.incomeGained = incomeGained
         self.linkPoints = linkPoints
         self.canBeDeveloped = canBeDeveloped
-        self.onlyPhaseOne = onlyPhaseOne
-        self.onlyPhaseTwo = onlyPhaseTwo
-        self.canBeDeveloped = True
-        self.onlyPhaseOne = False #can only be built during phase 1
-        self.onlyPhaseTwo = False #can only be built during phase 2
+        self.onlyPhaseOne = onlyPhaseOne #can only be built during phase 1
+        self.onlyPhaseTwo = onlyPhaseTwo #can only be built during phase 2
 
         isActive = False # is on the board i.e., not bought yet
         isRetired = False # only used for retired buildings (tier 1's) in second phase
