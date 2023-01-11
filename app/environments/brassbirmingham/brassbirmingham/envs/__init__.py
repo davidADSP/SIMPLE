@@ -1,1 +1,1 @@
-from butterfly.envs.butterfly import ButterflyEnv
+from brassbirmingham.envs.brassbirmingham import BrassBirminghamEnv

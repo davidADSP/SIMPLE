@@ -9,12 +9,12 @@ from stable_baselines import logger
 
 from .classes import *
 
-class ButterflyEnv(gym.Env):
+class BrassBirminghamEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
     def __init__(self, verbose = False, manual = False):
-        super(ButterflyEnv, self).__init__()
-        self.name = 'butterfly'
+        super(BrassBirminghamEnv, self).__init__()
+        self.name = 'brassbirmingham'
         self.n_players = 3
 
         self.manual = manual
@@ -42,8 +42,8 @@ class ButterflyEnv(gym.Env):
 
         for colour in ['R','B','G','Y']:
             for value in range(1, 6):
-                self.contents.append({'tile': Butterfly, 'info': {'name': f'{colour}{value}butterfly', 'colour': colour, 'value': value}, 'count': 2} )
-            self.contents.append({'tile': Butterfly, 'info': {'name': f'{colour}Xbutterfly', 'colour': colour, 'value': 0}, 'count': 1} )
+                self.contents.append({'tile': BrassBirmingham, 'info': {'name': f'{colour}{value}brassbirmingham', 'colour': colour, 'value': value}, 'count': 2} )
+            self.contents.append({'tile': BrassBirmingham, 'info': {'name': f'{colour}brassbirmingham', 'colour': colour, 'value': 0}, 'count': 1} )
 
         self.contents.append({'tile': Flower, 'info': {'name': 'flower'}, 'count':  13})
 
@@ -381,4 +381,4 @@ class ButterflyEnv(gym.Env):
 
 
     def rules_move(self):
-        raise Exception('Rules based agent is not yet implemented for Butterfly!')
+        raise Exception('Rules based agent is not yet implemented for BrassBirmingham!')
