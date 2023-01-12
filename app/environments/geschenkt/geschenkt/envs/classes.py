@@ -1,17 +1,17 @@
 import random
 
-class Player():
+
+class Player:
     def __init__(self, id):
         self.id = id
         self.position = Position()
         self.counters = Counters()
 
-    
     @property
     def score(self):
         score = 0
         current_value = 0
-        
+
         for card in sorted(self.position.cards, key=lambda x: x.id):
             if card.value > current_value + 1:
                 score += card.value
@@ -23,18 +23,19 @@ class Player():
         return score
 
 
-class Card():
+class Card:
     def __init__(self, id, order, value):
         self.id = id
         self.order = order
         self.value = value
         self.symbol = str(value)
-               
-class Deck():
+
+
+class Deck:
     def __init__(self, contents):
         self.contents = contents
         self.create()
-    
+
     def shuffle(self):
         random.shuffle(self.cards)
 
@@ -43,7 +44,7 @@ class Deck():
         for x in range(n):
             drawn.append(self.cards.pop())
         return drawn
-    
+
     def add(self, cards):
         for card in cards:
             self.cards.append(card)
@@ -53,12 +54,12 @@ class Deck():
 
         card_id = 0
         for order, x in enumerate(self.contents):
-            x['info']['order'] = order
-            for i in range(x['count']):
-                x['info']['id'] = card_id
-                self.add([x['card'](**x['info'])])
+            x["info"]["order"] = order
+            for i in range(x["count"]):
+                x["info"]["id"] = card_id
+                self.add([x["card"](**x["info"])])
                 card_id += 1
-                
+
         self.shuffle()
 
     def pick(self, symbol):
@@ -67,51 +68,50 @@ class Deck():
                 self.cards.pop(i)
                 return [c]
 
-
-
     def size(self):
         return len(self.cards)
 
 
-class Counters():
+class Counters:
     def __init__(self):
         self.counters = 0
-    
+
     def add(self, n):
         self.counters += n
 
     def remove(self, n):
         self.counters -= n
-    
+
     def size(self):
         return self.counters
-    
+
     def reset(self):
         self.counters = 0
-        
-                
-class Discard():
+
+
+class Discard:
     def __init__(self):
-        self.cards = []  
-    
+        self.cards = []
+
     def add(self, cards):
         for card in cards:
             self.cards.append(card)
-    
+
     def size(self):
         return len(self.cards)
-    
-class Position():
+
+
+class Position:
     def __init__(self):
-        self.cards = []  
-    
+        self.cards = []
+
     def add(self, cards):
         for card in cards:
             self.cards.append(card)
 
     def reset(self):
         self.cards = []
-    
+
     def size(self):
         return len(self.cards)
 
