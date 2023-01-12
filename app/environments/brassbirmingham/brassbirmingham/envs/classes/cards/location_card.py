@@ -7,6 +7,7 @@ from python.print_colors import (
     prRed,
     prYellow,
 )
+from consts import *
 
 
 class LocationCard(Card):
@@ -19,29 +20,29 @@ class LocationCard(Card):
         if self.isWild:
             return self.name
 
-        if self.name in ["Stoke-On-Trent", "Leek", "Stone", "Uttoxeter"]:
+        if self.name in [STOKE_ON_TRENT, LEEK, STONE, UTTOXETER]:
             return prCyan(self.name)
-        elif self.name in ["Belper", "Derby"]:
+        elif self.name in [BELPER, DERBY]:
             return prGreen(self.name)
         elif self.name in [
-            "Stafford",
-            "Cannock",
-            "Walsall",
-            "Burton-Upon-Trent",
-            "Tamworth",
+            STAFFORD,
+            CANNOCK,
+            WALSALL,
+            BURTON_UPON_TRENT,
+            TAMWORTH,
         ]:
             return prRed(self.name)
         elif self.name in [
-            "Wolverhampton",
-            "Coalbrookdale",
-            "Dudley",
-            "Kidderminster",
-            "Worcester",
+            WOLVERHAMPTON,
+            COALBROOKDALE,
+            DUDLEY,
+            KIDDERMINSTER,
+            WORCESTER,
         ]:
             return prYellow(self.name)
-        elif self.name in ["Nuneaton", "Birmingham", "Coventry", "Redditch"]:
+        elif self.name in [NUNEATON, BIRMINGHAM, COVENTRY, REDDITCH]:
             return prPurple(self.name)
-        elif self.name == "beer1" or self.name == "beer2":
+        elif self.name == BEER1 or self.name == BEER2:
             return prLightGray(self.name)
         return self.name
 

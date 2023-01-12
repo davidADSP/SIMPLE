@@ -61,7 +61,7 @@ class Town:
             returnStr = prYellow(self.name)
         elif self.color == "purple":
             returnStr = prPurple(self.name)
-        elif self.color == "beer1" or self.color == "beer2":
+        elif self.color == 'beer1' or self.color == 'beer2':
             returnStr = prLightGray(self.color)
         return f"Town({returnStr})"
 

@@ -25,6 +25,7 @@ class Board:
         self.wildBuildingDeck = Deck(STARTING_WILD_BUILDING_CARDS)
         self.wildLocationDeck = Deck(STARTING_WILD_LOCATION_CARDS)
         self.towns = TOWNS  # array of Town objects
+        self.townMap = {}
         self.tradePosts = TRADEPOSTS
         self.coalMarketRemaining = 15  # is this right tyler? double check plz
         self.coalMarketPrice = 1
@@ -34,12 +35,15 @@ class Board:
 
         for town in self.towns:
             town.addBoard(self)  # ref board to towns
+
+        for town in self.towns:
+            self.townMap[town.name] = town
         # network towns together
         for town in self.towns:
             for roadLocation in ROAD_LOCATIONS:
-                print(roadLocation.networks)
+                # print(roadLocation.networks)
                 if town.name in roadLocation.networks:
-                    print(f"adding {town.name}")
+                    # print(f"adding {town.name}")
                     town.addRoadLocation(roadLocation)
         for tradePost in self.tradePosts:
             for roadLocation in ROAD_LOCATIONS:
@@ -73,7 +77,7 @@ class Board:
     """
 
     def areNetworked(self, town1, town2):
-        print(f"Is there a network from {town1} to {town2}?")
+        # print(f"Is there a network from {town1} to {town2}?")
         q = [town1]
         v = [town1.id]
 
@@ -87,7 +91,7 @@ class Board:
                         if _town.id not in v:
                             q.append(_town)
                             v.append(_town.id)
-                            print(f"{_town=}, {town2=}, isRoadBuilt? {network.isBuilt}")
+                            # print(f"{_town=}, {town2=}, isRoadBuilt? {network.isBuilt}")
                             if _town.id == town2.id:
                                 return True
         return False
@@ -170,7 +174,7 @@ class Board:
             if (
                 building
                 and building.type == "industry"
-                and building.resourceType == "coal"
+                and building.resourceType == COAL
                 and building.resourceAmount > 0
             ):
                 l.append(building)
@@ -187,7 +191,7 @@ class Board:
             if (
                 building
                 and building.type == "industry"
-                and building.resourceType == "beer"
+                and building.resourceType == BEER
                 and building.resourceAmount > 0
             ):
                 l.append(building)
@@ -204,7 +208,7 @@ class Board:
             if (
                 building
                 and building.type == "industry"
-                and building.resourceType == "iron"
+                and building.resourceType == IRON
                 and building.resourceAmount > 0
             ):
                 l.append(building)
