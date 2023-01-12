@@ -44,6 +44,7 @@ class Building:
         self.onlyPhaseOne = onlyPhaseOne  # can only be built during phase 1
         self.onlyPhaseTwo = onlyPhaseTwo  # can only be built during phase 2
 
+        self.town = None
         self.isSold = False  # is sold/ran out of resources
         self.isActive = False  # is on the board i.e., not bought yet
         self.isRetired = (
@@ -64,5 +65,11 @@ class Building:
         self.isActive = True
         self.town = buildLocation.town
 
+    def sell(self):
+        self.isActive = False
+        self.isSold = True
+        self.isRetired = True
+        self.town = None
+
     def __repr__(self):
-        return f"\nBuilding {self.name}:: Owner: {self.owner}, Bought: {self.isActive}, Sold: {self.isSold} Retired: {self.isRetired}"
+        return f"\nBuilding {self.tier}:{self.name}:: Owner: {self.owner}, Bought: {self.isActive}, Sold: {self.isSold} Retired: {self.isRetired}"

@@ -39,15 +39,15 @@ class Town:
         self.board = board
 
     """
-    addNetwork
+    addRoadLocation
     game init use only
 
-    :param network: network
+    :param roadLocation: roadLocation
     """
 
-    def addNetwork(self, network):
-        network.addTown(self)
-        self.networks.append(network)
+    def addRoadLocation(self, roadLocation):
+        roadLocation.addTown(self)
+        self.networks.append(roadLocation)
 
     def __str__(self):
         returnStr = ""
@@ -63,7 +63,7 @@ class Town:
             returnStr = prPurple(self.name)
         elif self.color == "beer1" or self.color == "beer2":
             returnStr = prLightGray(self.color)
-        return str(returnStr)
+        return f"Town({returnStr})"
 
     def __repr__(self):
         return str(self)

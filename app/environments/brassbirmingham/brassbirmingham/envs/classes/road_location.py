@@ -15,6 +15,7 @@ class RoadLocation:
         self.networks = networks
         self.canBuildCanal = canBuildCanal
         self.canBuildRailroad = canBuildRailroad
+        self.road = None
         self.isBuilt = False
         self.towns = []
 
@@ -27,3 +28,18 @@ class RoadLocation:
 
     def addTown(self, town):
         self.towns.append(town)
+
+    def build(self, road):
+        self.road = road
+        self.isBuilt = True
+
+    def __str__(self):
+        if len(self.towns) == 3:
+            return f"{self.towns[0]} =={self.towns[1]}=={self.towns[2]}====3NETWORK"
+        if len(self.towns) == 2:
+            return f"{self.towns[0]} ==NETWORK=={self.towns[1]}"
+        else:
+            return str(self.towns)
+
+    def __repr__(self):
+        return str(self)

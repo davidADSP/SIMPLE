@@ -27,17 +27,25 @@ class BuildLocation:
     def addBuilding(self, building):
         self.building = building
 
-    def retireBuilding(self, building):
-        self.building.isRetired = True
+    def retireBuilding(self):
         self.building = None
 
     """
-    possibleBuild
+    isPossibleBuild
     
     :param building: building the player would like to place
     :param buildLocation: location the player would like to build on
     :return: whether player can build there (does NOT factor in cost)
     """
 
-    def possibleBuild(self, building):
-        return not self.isBuilt and building.name in self.possibleBuilds
+    def isPossibleBuild(self, building):
+        return not self.building and building.name in self.possibleBuilds
+
+    def __str__(self):
+        returnStr = "BuildingTile:|"
+        for possibleBuild in self.possibleBuilds:
+            returnStr += f"{possibleBuild} "
+        return returnStr + "|"
+
+    def __repr__(self):
+        return str(self)

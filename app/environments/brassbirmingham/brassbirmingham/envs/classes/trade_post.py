@@ -1,4 +1,5 @@
 from ..python.id import id
+from ..python.print_colors import prLightPurple
 
 
 class TradePost:
@@ -34,6 +35,7 @@ class TradePost:
         self.possibleTrades = []
         self.networkPoints = networkPoints
         self.canDevelop = canDevelop
+        self.networks = []
 
     """
     addPossibleTrade
@@ -45,3 +47,17 @@ class TradePost:
 
     def addPossibleTrade(self, possibleTrade):
         self.possibleTrades.append(possibleTrade)
+
+    """
+    addRoadLocation
+    game init use only
+
+    :param roadLocation: roadLocation
+    """
+
+    def addRoadLocation(self, roadLocation):
+        roadLocation.addTown(self)
+        self.networks.append(roadLocation)
+
+    def __str__(self):
+        return f"TP({prLightPurple(self.name)})"

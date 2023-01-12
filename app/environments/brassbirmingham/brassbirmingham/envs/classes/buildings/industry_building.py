@@ -3,7 +3,7 @@ from .building import Building
 
 class IndustryBuilding(Building):
     """
-    Industry Building
+    Industry Building - industry baby!
 
     :param name: any of [oil, coal, beer]
     :param tier: ex: 3
