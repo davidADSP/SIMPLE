@@ -1,8 +1,9 @@
 from classes import *
+
 NUM_PLAYERS = 2
 board = Board(NUM_PLAYERS)
-p1 = Player('Noah', board)
-p2 = Player('Tyler', board)
+p1 = Player("Noah", board)
+p2 = Player("Tyler", board)
 
 # print(p1)
 # print(p1.buildings)
