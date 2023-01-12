@@ -1,11 +1,11 @@
+from classes.build_location import BuildLocation
 from classes.buildings.industry_building import IndustryBuilding
 from classes.buildings.market_building import MarketBuilding
-from classes.town import Town
-from classes.build_location import BuildLocation
-from classes.trade_post import TradePost
-from classes.road_location import RoadLocation
-from classes.cards.location_card import LocationCard
 from classes.cards.industry_card import IndustryCard
+from classes.cards.location_card import LocationCard
+from classes.road_location import RoadLocation
+from classes.town import Town
+from classes.trade_post import TradePost
 
 STARTING_ROADS = 14
 STARTING_MONEY = 17
@@ -21,52 +21,52 @@ TWO_RAILROAD_BEER_PRICE = 2
 # amt of tokens doesn't matter actually
 
 
-#towns
-LEEK = 'Leek'
-STOKE_ON_TRENT = 'Stoke-On-Trent'
-STONE = 'Stone'
-CANNOCK = 'Cannock'
-UTTOXETER = 'Uttoxeter'
-BELPER = 'Belper'
-DERBY = 'Derby'
-STAFFORD = 'Stafford'
-BURTON_UPON_TRENT = 'Burton-Upon-Trent'
-BEER1 = 'beer1'
-TAMWORTH = 'Tamworth'
-WALSALL = 'Walsall'
-DUDLEY = 'Dudley'
-WORCESTER = 'Worcester'
-COALBROOKDALE = 'Coalbrookdale'
-WOLVERHAMPTON = 'Wolverhampton'
-KIDDERMINSTER = 'Kidderminster'
-BEER2 = 'beer2'
-BIRMINGHAM = 'Birmingham'
-NUNEATON = 'Nuneaton'
-COVENTRY = 'Coventry'
-REDDITCH = 'Redditch'
+# towns
+LEEK = "Leek"
+STOKE_ON_TRENT = "Stoke-On-Trent"
+STONE = "Stone"
+CANNOCK = "Cannock"
+UTTOXETER = "Uttoxeter"
+BELPER = "Belper"
+DERBY = "Derby"
+STAFFORD = "Stafford"
+BURTON_UPON_TRENT = "Burton-Upon-Trent"
+BEER1 = "beer1"
+TAMWORTH = "Tamworth"
+WALSALL = "Walsall"
+DUDLEY = "Dudley"
+WORCESTER = "Worcester"
+COALBROOKDALE = "Coalbrookdale"
+WOLVERHAMPTON = "Wolverhampton"
+KIDDERMINSTER = "Kidderminster"
+BEER2 = "beer2"
+BIRMINGHAM = "Birmingham"
+NUNEATON = "Nuneaton"
+COVENTRY = "Coventry"
+REDDITCH = "Redditch"
 
-#trade posts
-WARRINGTON = 'Warrington'
-NOTTINGHAM = 'Nottingham'
-SHREWBURY = 'Shrewbury'
-OXFORD = 'Oxford'
-GLOUCESTER = 'Gloucester'
+# trade posts
+WARRINGTON = "Warrington"
+NOTTINGHAM = "Nottingham"
+SHREWBURY = "Shrewbury"
+OXFORD = "Oxford"
+GLOUCESTER = "Gloucester"
 
-#CARD NAMES
-IRON_WORKS = 'Iron Works'
-COAL_MINE = 'Coal Mine'
-BREWERY = 'Brewery'
-POTTERY = 'Pottery'
-MAN_GOODS__COTTON = 'Man. Goods / Cotton Mill'
+# CARD NAMES
+IRON_WORKS = "Iron Works"
+COAL_MINE = "Coal Mine"
+BREWERY = "Brewery"
+POTTERY = "Pottery"
+MAN_GOODS__COTTON = "Man. Goods / Cotton Mill"
 
-#industry
-GOODS = 'goods'
-OIL = 'oil'
-BEER = 'beer'
-COTTON = 'cotton'
+# industry
+GOODS = "goods"
+OIL = "oil"
+BEER = "beer"
+COTTON = "cotton"
 # POTTERY = ''
-COAL = 'coal'
-IRON = 'iron'
+COAL = "coal"
+IRON = "iron"
 
 TOWNS = [
     Town(
@@ -179,9 +179,7 @@ TOWNS = [
             BuildLocation([OIL, GOODS]),
         ],
     ),
-    Town(
-        "purple", REDDITCH, [BuildLocation([GOODS, COAL]), BuildLocation([OIL])]
-    ),
+    Town("purple", REDDITCH, [BuildLocation([GOODS, COAL]), BuildLocation([OIL])]),
 ]
 
 TRADEPOSTS = [
@@ -437,14 +435,14 @@ STARTING_CARDS = {
         IndustryCard(COAL_MINE),
         IndustryCard(COAL_MINE),
         IndustryCard(COAL_MINE),
-        IndustryCard(MAN_GOODS__COTTON), #Manufactured goods OR Cotton
-        IndustryCard(MAN_GOODS__COTTON), #Manufactured goods OR Cotton
-        IndustryCard(MAN_GOODS__COTTON), #Manufactured goods OR Cotton
-        IndustryCard(MAN_GOODS__COTTON), #Manufactured goods OR Cotton
-        IndustryCard(MAN_GOODS__COTTON), #Manufactured goods OR Cotton
-        IndustryCard(MAN_GOODS__COTTON), #Manufactured goods OR Cotton
-        IndustryCard(MAN_GOODS__COTTON), #Manufactured goods OR Cotton
-        IndustryCard(MAN_GOODS__COTTON), #Manufactured goods OR Cotton
+        IndustryCard(MAN_GOODS__COTTON),  # Manufactured goods OR Cotton
+        IndustryCard(MAN_GOODS__COTTON),  # Manufactured goods OR Cotton
+        IndustryCard(MAN_GOODS__COTTON),  # Manufactured goods OR Cotton
+        IndustryCard(MAN_GOODS__COTTON),  # Manufactured goods OR Cotton
+        IndustryCard(MAN_GOODS__COTTON),  # Manufactured goods OR Cotton
+        IndustryCard(MAN_GOODS__COTTON),  # Manufactured goods OR Cotton
+        IndustryCard(MAN_GOODS__COTTON),  # Manufactured goods OR Cotton
+        IndustryCard(MAN_GOODS__COTTON),  # Manufactured goods OR Cotton
         IndustryCard(POTTERY),
         IndustryCard(POTTERY),
         IndustryCard(POTTERY),

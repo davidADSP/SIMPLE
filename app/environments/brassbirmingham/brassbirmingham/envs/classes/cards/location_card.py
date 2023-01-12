@@ -1,13 +1,8 @@
-from .card import Card
-from python.print_colors import (
-    prCyan,
-    prGreen,
-    prLightGray,
-    prPurple,
-    prRed,
-    prYellow,
-)
 from consts import *
+from python.print_colors import (prCyan, prGreen, prLightGray, prPurple, prRed,
+                                 prYellow)
+
+from .card import Card
 
 
 class LocationCard(Card):

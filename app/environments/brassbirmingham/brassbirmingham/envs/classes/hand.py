@@ -1,5 +1,6 @@
 from python.id import id
 
+
 class Hand:
     """
     Hand object

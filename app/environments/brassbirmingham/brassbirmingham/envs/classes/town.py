@@ -1,12 +1,7 @@
+import consts
 from python.id import id
-from python.print_colors import (
-    prCyan,
-    prGreen,
-    prLightGray,
-    prPurple,
-    prRed,
-    prYellow,
-)
+from python.print_colors import (prCyan, prGreen, prLightGray, prPurple, prRed,
+                                 prYellow)
 
 
 class Town:
@@ -61,7 +56,7 @@ class Town:
             returnStr = prYellow(self.name)
         elif self.color == "purple":
             returnStr = prPurple(self.name)
-        elif self.color == 'beer1' or self.color == 'beer2':
+        elif self.color == consts.BEER1 or self.color == consts.BEER2:
             returnStr = prLightGray(self.color)
         return f"Town({returnStr})"
 

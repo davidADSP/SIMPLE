@@ -1,18 +1,12 @@
 import copy
-from python.id import id
+
 from classes.hand import Hand
 from classes.roads.canal import Canal
-from consts import (
-    STARTING_MONEY,
-    BUILDINGS,
-    STARTING_ROADS,
-    CANAL_PRICE,
-    ONE_RAILROAD_PRICE,
-    ONE_RAILROAD_COAL_PRICE,
-    TWO_RAILROAD_PRICE,
-    TWO_RAILROAD_COAL_PRICE,
-    TWO_RAILROAD_BEER_PRICE,
-)
+from consts import (BUILDINGS, CANAL_PRICE, ONE_RAILROAD_COAL_PRICE,
+                    ONE_RAILROAD_PRICE, STARTING_MONEY, STARTING_ROADS,
+                    TWO_RAILROAD_BEER_PRICE, TWO_RAILROAD_COAL_PRICE,
+                    TWO_RAILROAD_PRICE)
+from python.id import id
 
 
 class Player:

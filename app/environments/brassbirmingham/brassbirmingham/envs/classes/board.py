@@ -1,21 +1,14 @@
+from consts import (CANAL_PRICE, ONE_RAILROAD_COAL_PRICE, ONE_RAILROAD_PRICE,
+                    ROAD_LOCATIONS, STARTING_CARDS,
+                    STARTING_WILD_BUILDING_CARDS, STARTING_WILD_LOCATION_CARDS,
+                    TOWNS, TRADEPOSTS, TWO_RAILROAD_COAL_PRICE,
+                    TWO_RAILROAD_PRICE, COAL, BEER, IRON)
 from python.id import id
 from python.print_colors import *
+
 from .deck import Deck
 from .roads.canal import Canal
 from .roads.railroad import Railroad
-from consts import (
-    CANAL_PRICE,
-    ONE_RAILROAD_COAL_PRICE,
-    ONE_RAILROAD_PRICE,
-    STARTING_CARDS,
-    STARTING_WILD_BUILDING_CARDS,
-    STARTING_WILD_LOCATION_CARDS,
-    TOWNS,
-    TRADEPOSTS,
-    ROAD_LOCATIONS,
-    TWO_RAILROAD_COAL_PRICE,
-    TWO_RAILROAD_PRICE,
-)
 
 
 class Board:
@@ -322,6 +315,7 @@ class Board:
     def isIronAvailableFromTradePosts(self, ironAmount, money):
         # enough money for iron amount?
         # tyler double check sale price on this
+        # TODO step function, i'm stuck!
         return (
             money > ironAmount * self.ironMarketPrice and self.ironMarketRemaining > 0
         )
