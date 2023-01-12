@@ -1,8 +1,8 @@
 import copy
-from ..python.id import id
-from ..classes.hand import Hand
-from ..classes.roads.canal import Canal
-from ..consts import (
+from python.id import id
+from classes.hand import Hand
+from classes.roads.canal import Canal
+from consts import (
     STARTING_MONEY,
     BUILDINGS,
     STARTING_ROADS,

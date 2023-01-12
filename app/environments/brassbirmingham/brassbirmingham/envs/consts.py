@@ -1,11 +1,11 @@
-from .classes.buildings.industry_building import IndustryBuilding
-from .classes.buildings.market_building import MarketBuilding
-from .classes.town import Town
-from .classes.build_location import BuildLocation
-from .classes.trade_post import TradePost
-from .classes.road_location import RoadLocation
-from .classes.cards.location_card import LocationCard
-from .classes.cards.industry_card import IndustryCard
+from classes.buildings.industry_building import IndustryBuilding
+from classes.buildings.market_building import MarketBuilding
+from classes.town import Town
+from classes.build_location import BuildLocation
+from classes.trade_post import TradePost
+from classes.road_location import RoadLocation
+from classes.cards.location_card import LocationCard
+from classes.cards.industry_card import IndustryCard
 
 STARTING_ROADS = 14
 STARTING_MONEY = 17

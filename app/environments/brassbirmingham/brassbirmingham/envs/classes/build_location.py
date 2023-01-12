@@ -1,4 +1,4 @@
-from ..python.id import id
+from python.id import id
 
 
 class BuildLocation:

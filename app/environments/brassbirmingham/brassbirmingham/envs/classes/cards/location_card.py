@@ -1,5 +1,5 @@
 from .card import Card
-from ...python.print_colors import (
+from python.print_colors import (
     prCyan,
     prGreen,
     prLightGray,

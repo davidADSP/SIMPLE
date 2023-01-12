@@ -1,5 +1,5 @@
-from ..python.id import id
-from ..python.print_colors import (
+from python.id import id
+from python.print_colors import (
     prCyan,
     prGreen,
     prLightGray,

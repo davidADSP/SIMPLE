@@ -1,3 +1,5 @@
+from python.id import id
+
 class Card:
     """
     Card object

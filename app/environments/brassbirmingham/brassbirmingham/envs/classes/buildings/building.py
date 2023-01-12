@@ -1,3 +1,5 @@
+from python.id import id
+
 class Building:
     """
     Building object

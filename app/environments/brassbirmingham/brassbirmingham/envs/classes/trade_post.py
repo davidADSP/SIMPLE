@@ -1,5 +1,5 @@
-from ..python.id import id
-from ..python.print_colors import prLightPurple
+from python.id import id
+from python.print_colors import prLightPurple
 
 
 class TradePost:

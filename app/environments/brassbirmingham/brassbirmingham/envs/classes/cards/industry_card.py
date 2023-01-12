@@ -1,5 +1,5 @@
 from .card import Card
-from ...python.print_colors import prGreen
+from python.print_colors import prGreen
 
 
 class IndustryCard(Card):

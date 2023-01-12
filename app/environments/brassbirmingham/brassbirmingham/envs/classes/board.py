@@ -1,10 +1,9 @@
-import copy
-
-from ..python.id import id
-from ..python.print_colors import *
+from python.id import id
+from python.print_colors import *
 from .deck import Deck
-from .roads import Canal, Railroad
-from ..consts import (
+from .roads.canal import Canal
+from .roads.railroad import Railroad
+from consts import (
     CANAL_PRICE,
     ONE_RAILROAD_COAL_PRICE,
     ONE_RAILROAD_PRICE,
