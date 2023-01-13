@@ -3,15 +3,16 @@ from python.print_colors import (prCyan, prGreen, prLightGray, prPurple, prRed,
                                  prYellow)
 
 from .card import Card
+from .enums import CardName, CardType
 
 
 class LocationCard(Card):
-    def __init__(self, name, isWild=False):
-        super(LocationCard, self).__init__("location")
+    def __init__(self, name: CardName, isWild=False):
+        super(LocationCard, self).__init__(CardType.location)
         self.name = name
         self.isWild = isWild
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.isWild:
             return self.name
 
@@ -41,5 +42,5 @@ class LocationCard(Card):
             return prLightGray(self.name)
         return self.name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)

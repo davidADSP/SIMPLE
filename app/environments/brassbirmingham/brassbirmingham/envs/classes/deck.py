@@ -1,6 +1,9 @@
 import random
+from typing import List
 
 from python.id import id
+
+from .cards.card import Card
 
 
 class Deck:
@@ -10,7 +13,7 @@ class Deck:
     :param cards: array of Card objects
     """
 
-    def __init__(self, cards):
+    def __init__(self, cards: List[Card]):
         self.id = id()
         self.cards = cards
         self.discardPile = []
@@ -30,5 +33,5 @@ class Deck:
         self.discardPile = []
         self.shuffle()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.cards)

@@ -1,7 +1,13 @@
+from typing import List
+
 import consts
 from python.id import id
 from python.print_colors import (prCyan, prGreen, prLightGray, prPurple, prRed,
                                  prYellow)
+
+from .board import Board
+from .build_location import BuildLocation
+from .road_location import RoadLocation
 
 
 class Town:
@@ -12,14 +18,16 @@ class Town:
     :param name: name
     :param buildLocation: array of BuildLocation objects"""
 
-    def __init__(self, color, name, buildLocations):
+    def __init__(self, color: str, name: str, buildLocations: List[BuildLocation]):
         self.id = id()
         self.color = color
         self.name = name
         self.buildLocations = buildLocations
         for buildLocation in self.buildLocations:
             buildLocation.addTown(self)
-        self.networks = (
+        self.networks: List[
+            Town
+        ] = (
             []
         )  # networks to other towns ex: Town('Leek') would have [Town('Stoke-On-Trent'), Town('Belper')]
 
@@ -30,7 +38,7 @@ class Town:
     :param board: board
     """
 
-    def addBoard(self, board):
+    def addBoard(self, board: Board):
         self.board = board
 
     """
@@ -40,11 +48,11 @@ class Town:
     :param roadLocation: roadLocation
     """
 
-    def addRoadLocation(self, roadLocation):
+    def addRoadLocation(self, roadLocation: RoadLocation):
         roadLocation.addTown(self)
         self.networks.append(roadLocation)
 
-    def __str__(self):
+    def __str__(self) -> str:
         returnStr = ""
         if self.color == "blue":
             returnStr = prCyan(self.name)
@@ -60,5 +68,5 @@ class Town:
             returnStr = prLightGray(self.color)
         return f"Town({returnStr})"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)

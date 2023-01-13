@@ -1,5 +1,7 @@
 from python.id import id
 
+from .enums import BuildingName, BuildingType
+
 
 class Building:
     """
@@ -20,18 +22,18 @@ class Building:
 
     def __init__(
         self,
-        type,
-        name,
-        tier,
-        cost,
-        coalCost,
-        ironCost,
-        victoryPointsGained,
-        incomeGained,
-        networkPoints,
-        canBeDeveloped,
-        onlyPhaseOne,
-        onlyPhaseTwo,
+        type: BuildingType,
+        name: BuildingName,
+        tier: int,
+        cost: int,
+        coalCost: int,
+        ironCost: int,
+        victoryPointsGained: int,
+        incomeGained: int,
+        networkPoints: int,
+        canBeDeveloped: bool,
+        onlyPhaseOne: bool,
+        onlyPhaseTwo: bool,
     ):
         self.id = id()
         self.type = type
@@ -74,5 +76,5 @@ class Building:
         self.isRetired = True
         self.town = None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"\nBuilding {self.tier}:{self.name}:: Owner: {self.owner}, Bought: {self.isActive}, Sold: {self.isSold} Retired: {self.isRetired}"

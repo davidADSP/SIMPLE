@@ -7,6 +7,7 @@ from stable_baselines import logger
 
 from .classes import *
 
+
 # TODO delete stuff and make stuff :)
 class BrassBirminghamEnv(gym.Env):
     metadata = {"render.modes": ["human"]}

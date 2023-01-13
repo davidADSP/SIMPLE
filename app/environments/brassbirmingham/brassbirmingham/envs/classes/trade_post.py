@@ -1,5 +1,10 @@
+from typing import List
+
 from python.id import id
 from python.print_colors import prLightPurple
+
+from .road_location import RoadLocation
+from .town import Town
 
 
 class TradePost:
@@ -17,13 +22,13 @@ class TradePost:
 
     def __init__(
         self,
-        name,
-        beerAmount,
-        moneyGained,
-        victoryPointsGained,
-        incomeGained,
-        networkPoints,
-        canDevelop,
+        name: str,
+        beerAmount: int,
+        moneyGained: int,
+        victoryPointsGained: int,
+        incomeGained: int,
+        networkPoints: int,
+        canDevelop: bool,
     ):
         self.id = id()
         self.type = "TradePost"
@@ -35,7 +40,7 @@ class TradePost:
         self.possibleTrades = []
         self.networkPoints = networkPoints
         self.canDevelop = canDevelop
-        self.networks = []
+        self.networks: List[RoadLocation] = []
 
     """
     addPossibleTrade
@@ -55,9 +60,9 @@ class TradePost:
     :param roadLocation: roadLocation
     """
 
-    def addRoadLocation(self, roadLocation):
+    def addRoadLocation(self, roadLocation: RoadLocation):
         roadLocation.addTown(self)
         self.networks.append(roadLocation)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"TP({prLightPurple(self.name)})"

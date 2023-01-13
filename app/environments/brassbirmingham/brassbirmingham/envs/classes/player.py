@@ -8,9 +8,14 @@ from consts import (BUILDINGS, CANAL_PRICE, ONE_RAILROAD_COAL_PRICE,
                     TWO_RAILROAD_PRICE)
 from python.id import id
 
+from .board import Board
+from .build_location import BuildLocation
+from .buildings.building import Building
+from .road_location import RoadLocation
+
 
 class Player:
-    def __init__(self, name, board):
+    def __init__(self, name: str, board: Board):
         self.id = id()
         self.name = name
         self.board = board
@@ -30,7 +35,9 @@ class Player:
         ]  # canals/railroads, array of Road objects
         self.board.addPlayer(self)
 
-    def canAffordBuildingIndustryResources(self, buildLocation, coalCost, ironCost):
+    def canAffordBuildingIndustryResources(
+        self, buildLocation: BuildLocation, coalCost: int, ironCost: int
+    ) -> bool:
         return (
             self.board.isCoalAvailableFromBuildings(buildLocation.town)
             or self.board.isCoalAvailableFromTradePosts(
@@ -41,36 +48,43 @@ class Player:
             or self.board.isIronAvailableFromTradePosts(ironCost, self.money)
         )
 
-    def canAffordBuilding(self, building):
+    def canAffordBuilding(self, building: Building) -> bool:
         return self.money >= building.cost
 
-    def canPlaceBuilding(self, building, buildLocation):
+    def canPlaceBuilding(
+        self, building: Building, buildLocation: BuildLocation
+    ) -> bool:
         return buildLocation.isPossibleBuild(building)
 
-    def totalBuildingCost(self, building, coalCost, ironCost):
+    def totalBuildingCost(
+        self, building: Building, coalCost: int, ironCost: int
+    ) -> int:
         return (
             building.cost
-            + coalCost * self.board.coalMarketPrice
-            + ironCost * self.board.ironMarketPrice
+            + coalCost
+            * self.board.coalMarketPrice  # TODO Fix this (price is dependent)
+            + ironCost * self.board.ironMarketPrice  # TODO Fix this
         )
 
-    def canAffordCanal(self):
+    def canAffordCanal(self) -> bool:
         return self.money >= CANAL_PRICE
 
-    def canPlaceCanal(self, roadLocation):
+    def canPlaceCanal(self, roadLocation: RoadLocation) -> bool:
         return not roadLocation.isBuilt and roadLocation.canBuildCanal
 
-    def canAffordOneRailroadIndustryResources(self):
+    def canAffordOneRailroadIndustryResources(self) -> bool:
         return self.board.getAvailableCoalAmount() >= ONE_RAILROAD_COAL_PRICE
         # return self.board.isCoalAvailableFromBuildings(roadLocation.town) or self.board.isCoalAvailableFromTradePosts(roadLocation.town, ONE_RAILROAD_COAL_PRICE, self.money)
 
-    def canAffordOneRailroad(self):
+    def canAffordOneRailroad(self) -> bool:
         return self.money >= ONE_RAILROAD_PRICE
 
-    def canPlaceOneRailroad(self, roadLocation):
+    def canPlaceOneRailroad(self, roadLocation: RoadLocation) -> bool:
         return not roadLocation.isBuilt and roadLocation.canBuildRailroad
 
-    def canAffordTwoRailroadIndustryResources(self, roadLocation1, roadLocation2):
+    def canAffordTwoRailroadIndustryResources(
+        self, roadLocation1: RoadLocation, roadLocation2: RoadLocation
+    ) -> bool:
         # todo - or for now, but may be incorrect
         return (
             self.board.getAvailableCoalAmount(roadLocation1) >= TWO_RAILROAD_COAL_PRICE
@@ -86,15 +100,17 @@ class Player:
         #         or\
         #         (self.board.isCoalAvailableFromBuildings(roadLocation2.town) or self.board.isCoalAvailableFromTradePosts(roadLocation2.town, TWO_RAILROAD_COAL_PRICE, self.money)) and (self.board.isBeerAvailableFromBuildings(roadLocation2.town) or self.board.isBeerAvailableFromTradePosts(roadLocation1.town))
 
-    def canAffordTwoRailroads(self):
+    def canAffordTwoRailroads(self) -> bool:
         return self.money >= TWO_RAILROAD_PRICE
 
-    def canPlaceTwoRailroads(self, roadLocation1, roadLocation2):
+    def canPlaceTwoRailroads(
+        self, roadLocation1: RoadLocation, roadLocation2: RoadLocation
+    ) -> bool:
         return self.canPlaceOneRailroad(roadLocation1) and self.canPlaceOneRailroad(
             roadLocation2
         )
 
-    def canAffordSellBuilding(self, building):
+    def canAffordSellBuilding(self, building: Building) -> bool:
         return building.beerCost <= self.board.getAvailableBeerAmount(
             self, building.town
         )
@@ -102,7 +118,9 @@ class Player:
     """Possible Actions
     probably useful to separate into canX and doX functions for generating state and possible action array (?)"""
     # 1 BUILD
-    def canBuildBuilding(self, building, buildLocation):
+    def canBuildBuilding(
+        self, building: Building, buildLocation: BuildLocation
+    ) -> bool:
         return (
             self.canAffordBuildingIndustryResources(
                 buildLocation, building.coalCost, building.ironCost
@@ -113,17 +131,19 @@ class Player:
         )
 
     # 2 NETWORK
-    def canBuildCanal(self, roadLocation):
+    def canBuildCanal(self, roadLocation: RoadLocation) -> bool:
         return self.canAffordCanal() and self.canPlaceCanal(roadLocation)
 
-    def canBuildOneRailroad(self, roadLocation):
+    def canBuildOneRailroad(self, roadLocation: RoadLocation) -> bool:
         return (
             self.canAffordOneRailroad()
             and self.canPlaceOneRailroad(roadLocation)
             and self.canAffordOneRailroadIndustryResources()
         )
 
-    def canBuildTwoRailroads(self, roadLocation1, roadLocation2):
+    def canBuildTwoRailroads(
+        self, roadLocation1: RoadLocation, roadLocation2: RoadLocation
+    ) -> bool:
         return (
             self.canAffordTwoRailroads()
             and self.canAffordTwoRailroadIndustryResources(roadLocation1, roadLocation2)
@@ -131,7 +151,7 @@ class Player:
         )
 
     # 3 DEVELOP
-    def canDevelop(self, building1, building2):
+    def canDevelop(self, building1: Building, building2: Building) -> bool:
         return (
             not building1.isActive
             and not building1.isRetired
@@ -144,7 +164,7 @@ class Player:
         )
 
     # 4 SELL
-    def canSell(self, building, buildLocation):
+    def canSell(self, building: Building, buildLocation: BuildLocation) -> bool:
         return (
             building.isActive
             and building.owner == self
@@ -156,7 +176,7 @@ class Player:
     # is there a limit to the amount of loans you can take out? minimum income? prob not
 
     # 6 SCOUT
-    def canScout(self):
+    def canScout(self) -> bool:
         return (
             len(self.board.wildBuildingDeck) > 0
             and len(self.board.wildLocationDeck) > 0
@@ -165,32 +185,34 @@ class Player:
     """Actions"""
     # todo player discarding for actions
     # 1 BUILD
-    def buildBuilding(self, building, buildLocation):
+    def buildBuilding(self, building: Building, buildLocation: BuildLocation):
         assert self.canBuildBuilding(building, buildLocation)
         building.build(buildLocation)
         self.board.buildBuilding(building, buildLocation, self)
 
     # 2 NETWORK
-    def buildCanal(self, roadLocation):
+    def buildCanal(self, roadLocation: RoadLocation):
         assert self.canBuildCanal(roadLocation)
         self.board.buildCanal(roadLocation, self)
 
-    def buildOneRailroad(self, roadLocation):
+    def buildOneRailroad(self, roadLocation: RoadLocation):
         assert self.canBuildOneRailroad(roadLocation)
         self.board.buildOneRailroad(roadLocation, self)
 
-    def buildTwoRailroads(self, roadLocation1, roadLocation2):
+    def buildTwoRailroads(
+        self, roadLocation1: RoadLocation, roadLocation2: RoadLocation
+    ):
         assert self.canBuildTwoRailroads(roadLocation1, roadLocation2)
         self.board.buildTwoRailroads(roadLocation1, roadLocation2, self)
 
     # 3 DEVELOP
-    def develop(self, building1, building2):
+    def develop(self, building1: Building, building2: Building):
         assert self.canDevelop(building1, building2)
         building1.isRetired = True
         building2.isRetired = True
 
     # 4 SELL
-    def sell(self, building, buildLocation):
+    def sell(self, building: Building, buildLocation: BuildLocation):
         assert self.canSell(building)
         self.board.sellBuilding(building, buildLocation, self)
 
@@ -206,5 +228,5 @@ class Player:
         self.hand.add(self.board.wildBuildingDeck.draw())
         self.hand.add(self.board.wildLocationDeck.draw())
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name
