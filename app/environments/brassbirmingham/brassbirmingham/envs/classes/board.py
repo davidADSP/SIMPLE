@@ -14,6 +14,8 @@ from consts import (
     TRADEPOSTS,
     TWO_RAILROAD_COAL_PRICE,
     TWO_RAILROAD_PRICE,
+    MAX_MARKET_COAL,
+    MAX_MARKET_IRON
 )
 from python.id import id
 from python.print_colors import *
@@ -41,10 +43,8 @@ class Board:
         self.towns = TOWNS  # array of Town objects
         self.townMap = {}
         self.tradePosts = TRADEPOSTS
-        self.coalMarketRemaining = 15  # is this right tyler? double check plz
-        self.coalMarketPrice = 1
-        self.ironMarketRemaining = 8  # also this
-        self.ironMarketPrice = 1
+        self.coalMarketRemaining = MAX_MARKET_COAL - 1 # coal market missing 1
+        self.ironMarketRemaining = MAX_MARKET_IRON
         self.players: List[Player] = []  # array of Player objects
 
         for town in self.towns:
@@ -81,6 +81,49 @@ class Board:
                 if buildLocation.building:
                     l.append(buildLocation.building)
         return l
+
+    def priceForCoal(self, coalNeeded: int) -> int:
+        price = 0
+        currCoalRemaining = self.coalMarketRemaining
+        for _ in range(coalNeeded):
+            if currCoalRemaining <= 0:
+                price += 8
+            elif currCoalRemaining == 1 or currCoalRemaining == 2:
+                price += 7
+            elif currCoalRemaining == 3 or currCoalRemaining == 4:
+                price += 6
+            elif currCoalRemaining == 5 or currCoalRemaining == 6:
+                price += 5
+            elif currCoalRemaining == 7 or currCoalRemaining == 8:
+                price += 4
+            elif currCoalRemaining == 9 or currCoalRemaining == 10:
+                price += 3
+            elif currCoalRemaining == 11 or currCoalRemaining == 12:
+                price += 2
+            elif currCoalRemaining >= 13:
+                price += 1
+            currCoalRemaining = max(currCoalRemaining-1, 0)
+        return price
+
+    def priceForIron(self, ironNeeded: int) -> int:
+        price = 0
+        currIronRemaining = self.coalMarketRemaining
+        for _ in range(ironNeeded):
+            if currIronRemaining <= 0:
+                price += 6
+            elif currIronRemaining == 1 or currIronRemaining == 2:
+                price += 5
+            elif currIronRemaining == 3 or currIronRemaining == 4:
+                price += 4
+            elif currIronRemaining == 5 or currIronRemaining == 6:
+                price +=3
+            elif currIronRemaining == 7 or currIronRemaining == 8:
+                price += 2
+            elif currIronRemaining >= 13:
+                price += 1
+            currIronRemaining = max(currIronRemaining-1, 0)
+        return price
+
 
     """
     areNetworked
@@ -130,21 +173,16 @@ class Board:
             )  # todo assert these changes to resourceAmount are actually affecting the building
             # take coal away from resources
             while X > 0:
-                X -= 1
                 if _available.type == "TradePost":
-                    if self.coalMarketRemaining > 0:
-                        player.money -= (
-                            self.coalMarketPrice
-                        )  # todo assert this changes player's money
-                        self.coalMarketRemaining -= 1
-                    else:
-                        raise ValueError(
-                            "Not enough coal in trade post, make sure we check there is enough before calling board.buildBuilding"
-                        )
+                    cost = self.priceForCoal(X)
+                    player.money -= cost  # todo assert this changes player's money
+                    self.coalMarketRemaining -= X
+                    return
                 else:
                     _available.resourceAmount -= 1
                     if _available.resourceAmount == 0:
                         _available = availableCoal.pop(0)
+                X -= 1
             return
 
     """
@@ -303,9 +341,9 @@ class Board:
             if self.areNetworked(town, tradePost):
                 # enough money for coal amount?
                 # tyler double check sale price on this
+                cost = self.priceForCoal(coalAmount)
                 if (
-                    money > coalAmount * self.coalMarketPrice
-                    and self.coalMarketRemaining > 0
+                    money > cost
                 ):
                     return True
         return False
@@ -338,11 +376,8 @@ class Board:
     """
 
     def isIronAvailableFromTradePosts(self, ironAmount: int, money: int) -> bool:
-        # enough money for iron amount?
-        # tyler double check sale price on this
-        # TODO step function, i'm stuck!
         return (
-            money > ironAmount * self.ironMarketPrice and self.ironMarketRemaining > 0
+            money > self.priceForIron(ironAmount)
         )
 
     """
