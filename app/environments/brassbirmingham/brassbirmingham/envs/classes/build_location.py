@@ -1,4 +1,10 @@
+from typing import List, Optional
+
 from python.id import id
+
+from .buildings.building import Building
+from .buildings.enums import BuildingName
+from .town import Town
 
 
 class BuildLocation:
@@ -9,10 +15,10 @@ class BuildLocation:
     :param town: town
     """
 
-    def __init__(self, possibleBuilds):
+    def __init__(self, possibleBuilds: List[BuildingName]):
         self.id = id()
         self.possibleBuilds = possibleBuilds
-        self.building = None
+        self.building: Optional[Building] = None
 
     """
     addTown
@@ -21,10 +27,10 @@ class BuildLocation:
     :param town: town
     """
 
-    def addTown(self, town):
+    def addTown(self, town: Town):
         self.town = town
 
-    def addBuilding(self, building):
+    def addBuilding(self, building: Building):
         self.building = building
 
     def retireBuilding(self):
@@ -38,14 +44,14 @@ class BuildLocation:
     :return: whether player can build there (does NOT factor in cost)
     """
 
-    def isPossibleBuild(self, building):
+    def isPossibleBuild(self, building: Building):
         return not self.building and building.name in self.possibleBuilds
 
-    def __str__(self):
+    def __str__(self) -> str:
         returnStr = "BuildingTile:|"
         for possibleBuild in self.possibleBuilds:
             returnStr += f"{possibleBuild} "
         return returnStr + "|"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)

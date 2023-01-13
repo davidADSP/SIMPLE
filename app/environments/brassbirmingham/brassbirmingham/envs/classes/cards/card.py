@@ -1,5 +1,7 @@
 from python.id import id
 
+from .enums import CardType
+
 
 class Card:
     """
@@ -9,6 +11,6 @@ class Card:
     :param name: name of location or industry
     """
 
-    def __init__(self, type):
+    def __init__(self, type: CardType):
         self.id = id()
         self.type = type

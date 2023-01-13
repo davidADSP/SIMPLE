@@ -1,20 +1,29 @@
+from typing import List, Optional
+
 from consts import (CANAL_PRICE, ONE_RAILROAD_COAL_PRICE, ONE_RAILROAD_PRICE,
                     ROAD_LOCATIONS, STARTING_CARDS,
                     STARTING_WILD_BUILDING_CARDS, STARTING_WILD_LOCATION_CARDS,
                     TOWNS, TRADEPOSTS, TWO_RAILROAD_COAL_PRICE,
-                    TWO_RAILROAD_PRICE, COAL, BEER, IRON)
+                    TWO_RAILROAD_PRICE)
 from python.id import id
 from python.print_colors import *
 
+from .build_location import BuildLocation
+from .buildings.building import Building
+from .buildings.enums import BuildingName, BuildingType
 from .deck import Deck
+from .player import Player
+from .road_location import RoadLocation
 from .roads.canal import Canal
 from .roads.railroad import Railroad
+from .town import Town
+from .trade_post import TradePost
 
 
 class Board:
-    def __init__(self, NUM_PLAYERS):
+    def __init__(self, numPlayers: int):
         self.id = id()
-        self.deck = Deck(STARTING_CARDS[str(NUM_PLAYERS)])
+        self.deck = Deck(STARTING_CARDS[str(numPlayers)])
         self.wildBuildingDeck = Deck(STARTING_WILD_BUILDING_CARDS)
         self.wildLocationDeck = Deck(STARTING_WILD_LOCATION_CARDS)
         self.towns = TOWNS  # array of Town objects
@@ -24,7 +33,7 @@ class Board:
         self.coalMarketPrice = 1
         self.ironMarketRemaining = 8  # also this
         self.ironMarketPrice = 1
-        self.players = []  # array of Player objects
+        self.players: List[Player] = []  # array of Player objects
 
         for town in self.towns:
             town.addBoard(self)  # ref board to towns
@@ -50,10 +59,10 @@ class Board:
     :param player: player
     """
 
-    def addPlayer(self, player):
+    def addPlayer(self, player: Player):
         self.players.append(player)
 
-    def getAllBuildings(self):
+    def getAllBuildings(self) -> List[Building]:
         l = []
         for town in self.towns:
             for buildLocation in town.buildLocations:
@@ -69,7 +78,9 @@ class Board:
     :return: whether there is a road network built between towns
     """
 
-    def areNetworked(self, town1, town2):
+    def areNetworked(
+        self, town1: Town | Building | TradePost, town2: Town | Building | TradePost
+    ) -> bool:
         # print(f"Is there a network from {town1} to {town2}?")
         q = [town1]
         v = [town1.id]
@@ -96,7 +107,7 @@ class Board:
     :param towns: towns to search from, must be array [town]
     :param player: player to remove money from (if necessary)"""
 
-    def removeXCoal(self, X, towns, player):
+    def removeXCoal(self, X: int, towns: List[Town], player: Player):
         for town in towns:
             availableCoal = self.getAvailableCoalBuildingsTradePosts(town)
             if availableCoal == 0:
@@ -131,7 +142,7 @@ class Board:
     :param towns: towns to search from, must be array [town]
     :param player: player to remove money from (if necessary)"""
 
-    def removeXBeer(self, X, towns, player):
+    def removeXBeer(self, X: int, towns: List[Town], player: Player):
         for town in towns:
             availableBeer = self.getAvailableBeerBuildingsTradePosts(player, town)
             if availableBeer == 0:
@@ -161,13 +172,13 @@ class Board:
     
     :return: array of buildings which have coal resources"""
 
-    def getCoalBuildings(self):
+    def getCoalBuildings(self) -> List[Building]:
         l = []
         for building in self.getAllBuildings():
             if (
                 building
-                and building.type == "industry"
-                and building.resourceType == COAL
+                and building.type == BuildingType.industry
+                and building.name == BuildingName.coal
                 and building.resourceAmount > 0
             ):
                 l.append(building)
@@ -178,13 +189,13 @@ class Board:
     
     :return: array of buildings which have beer resources"""
 
-    def getBeerBuildings(self):
+    def getBeerBuildings(self) -> List[Building]:
         l = []
         for building in self.getAllBuildings():
             if (
                 building
-                and building.type == "industry"
-                and building.resourceType == BEER
+                and building.type == BuildingType.industry
+                and building.name == BuildingName.coal
                 and building.resourceAmount > 0
             ):
                 l.append(building)
@@ -195,13 +206,13 @@ class Board:
     
     :return: array of buildings which have iron resources"""
 
-    def getIronBuildings(self):
+    def getIronBuildings(self) -> List[Building]:
         l = []
         for building in self.getAllBuildings():
             if (
                 building
-                and building.type == "industry"
-                and building.resourceType == IRON
+                and building.type == BuildingType.industry
+                and building.name == BuildingName.coal
                 and building.resourceAmount > 0
             ):
                 l.append(building)
@@ -216,7 +227,7 @@ class Board:
     :return: is there coal available from networked buildings
     """
 
-    def isCoalAvailableFromBuildings(self, town):
+    def isCoalAvailableFromBuildings(self, town: Town) -> bool:
         # areNetworked puts priority on closest buildings to pick from
         # todo add priority for own buildings (?)
 
@@ -235,7 +246,7 @@ class Board:
     :return: is there beer available from networked buildings
     """
 
-    def isBeerAvailableFromBuildings(self, player, town):
+    def isBeerAvailableFromBuildings(self, player: Player, town: Town) -> bool:
         # areNetworked puts priority on closest buildings to pick from
         # todo add priority for own buildings (?)
 
@@ -252,7 +263,7 @@ class Board:
     :return: is there iron available from buildings
     """
 
-    def isIronAvailableFromBuildings(self):
+    def isIronAvailableFromBuildings(self) -> bool:
         # areNetworked puts priority on closest buildings to pick from
         # todo add priority for own buildings (?)
 
@@ -272,7 +283,9 @@ class Board:
     :return: is there coal available from networked trade posts
     """
 
-    def isCoalAvailableFromTradePosts(self, town, coalAmount, money):
+    def isCoalAvailableFromTradePosts(
+        self, town: Town, coalAmount: int, money: int
+    ) -> bool:
         # check for connection to tradeposts
         for tradePost in self.tradePosts:
             if self.areNetworked(town, tradePost):
@@ -294,7 +307,7 @@ class Board:
     :return: is there beer available from networked trade posts
     """
 
-    def isBeerAvailableFromTradePosts(self, town):
+    def isBeerAvailableFromTradePosts(self, town: Town) -> bool:
         # check for connection to tradeposts
         for tradePost in self.tradePosts:
             if self.areNetworked(town, tradePost):
@@ -312,7 +325,7 @@ class Board:
     :return: is there iron available from networked trade posts
     """
 
-    def isIronAvailableFromTradePosts(self, ironAmount, money):
+    def isIronAvailableFromTradePosts(self, ironAmount: int, money: int) -> bool:
         # enough money for iron amount?
         # tyler double check sale price on this
         # TODO step function, i'm stuck!
@@ -326,7 +339,7 @@ class Board:
     :param town: town where coal is required
     :return: amount of coal"""
 
-    def getAvailableCoalAmount(self, town):
+    def getAvailableCoalAmount(self, town: Town) -> int:
         coalBuildings = self.getCoalBuildings()
         amount = 0
         for coalBuilding in coalBuildings:
@@ -345,7 +358,7 @@ class Board:
     :param town: town where beer is required
     :return: amount of beer"""
 
-    def getAvailableBeerAmount(self, player, town):
+    def getAvailableBeerAmount(self, player: Player, town: Town) -> int:
         beerBuildings = self.getBeerBuildings()
         amount = 0
         for beerBuilding in beerBuildings:
@@ -364,7 +377,7 @@ class Board:
     :param town: town where iron is required
     :return: amount of iron"""
 
-    def getAvailableIronAmount(self):
+    def getAvailableIronAmount(self) -> int:
         ironBuildings = self.getIronBuildings()
         amount = 0
         for ironBuilding in ironBuildings:
@@ -379,7 +392,9 @@ class Board:
     :param town: town where coal is required
     :return: buildings/tradeposts with coal"""
 
-    def getAvailableCoalBuildingsTradePosts(self, town):
+    def getAvailableCoalBuildingsTradePosts(
+        self, town: Town
+    ) -> List[Building | TradePost]:
         coalBuildings = self.getCoalBuildings()
         l = []
         for coalBuilding in coalBuildings:
@@ -398,7 +413,9 @@ class Board:
     :param town: town where beer is required
     :return: buildings/tradeposts with beer"""
 
-    def getAvailableBeerBuildingsTradePosts(self, player, town):
+    def getAvailableBeerBuildingsTradePosts(
+        self, player: Player, town: Town
+    ) -> List[Building | TradePost]:
         beerBuildings = self.getBeerBuildings()
         l = []
         for beerBuilding in beerBuildings:
@@ -427,7 +444,9 @@ class Board:
     :param money: player's money
     """
 
-    def buildBuilding(self, building, buildLocation, player):
+    def buildBuilding(
+        self, building: Building, buildLocation: BuildLocation, player: Player
+    ):
         self.removeXCoal(building.coalCost, [building.town], player)
         player.money -= building.cost
         # todo take iron away from resources
@@ -436,16 +455,18 @@ class Board:
         buildLocation.addBuilding(building)
         building.build(buildLocation)
 
-    def buildCanal(self, roadLocation, player):
+    def buildCanal(self, roadLocation: RoadLocation, player: Player):
         player.money -= CANAL_PRICE
         roadLocation.build(Canal(player))
 
-    def buildOneRailroad(self, roadLocation, player):
+    def buildOneRailroad(self, roadLocation: RoadLocation, player: Player):
         player.money -= ONE_RAILROAD_PRICE
         self.removeXCoal(ONE_RAILROAD_COAL_PRICE, roadLocation.towns, player)
         roadLocation.build(Railroad(player))
 
-    def buildTwoRailroads(self, roadLocation1, roadLocation2, player):
+    def buildTwoRailroads(
+        self, roadLocation1: RoadLocation, roadLocation2: RoadLocation, player: Player
+    ):
         player.money -= TWO_RAILROAD_PRICE
         self.removeXCoal(
             TWO_RAILROAD_COAL_PRICE,
@@ -462,7 +483,9 @@ class Board:
     :param building: building to sell
     """
 
-    def sellBuilding(self, building, buildLocation, player):
+    def sellBuilding(
+        self, building: Building, buildLocation: BuildLocation, player: Player
+    ):
         self.removeXBeer(building.sell, [building.town], player)
         building.sell(buildLocation)
         buildLocation.sellBuilding()

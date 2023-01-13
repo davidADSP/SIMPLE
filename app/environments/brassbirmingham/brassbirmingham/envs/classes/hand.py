@@ -1,4 +1,9 @@
+from typing import List
+
 from python.id import id
+
+from .cards.card import Card
+from .deck import Deck
 
 
 class Hand:
@@ -7,15 +12,15 @@ class Hand:
 
     :param deck: Deck object"""
 
-    def __init__(self, deck):
+    def __init__(self, deck: Deck):
         self.id = id()
-        self.cards = []
+        self.cards: List[Card] = []
         self.deck = deck
 
     def draw(self):
         self.cards.append(self.deck.draw())
 
-    def spendCard(self, card):
+    def spendCard(self, card: Card):
         self.cards = list(
             filter(lambda x: x.id != card.self.cards, self.cards)
         )  # remove that card from hand
@@ -27,7 +32,7 @@ class Hand:
     :return: amount of cards in hand
     """
 
-    def getTotal(self):
+    def getTotal(self) -> int:
         return len(self.cards)
 
     def __repr__(self):

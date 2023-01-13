@@ -1,6 +1,12 @@
+from typing import Dict, List
+
 from classes.build_location import BuildLocation
+from classes.buildings.building import Building
+from classes.buildings.enums import BuildingName
 from classes.buildings.industry_building import IndustryBuilding
 from classes.buildings.market_building import MarketBuilding
+from classes.cards.card import Card
+from classes.cards.enums import CardName
 from classes.cards.industry_card import IndustryCard
 from classes.cards.location_card import LocationCard
 from classes.road_location import RoadLocation
@@ -52,137 +58,173 @@ SHREWBURY = "Shrewbury"
 OXFORD = "Oxford"
 GLOUCESTER = "Gloucester"
 
-# CARD NAMES
-IRON_WORKS = "Iron Works"
-COAL_MINE = "Coal Mine"
-BREWERY = "Brewery"
-POTTERY = "Pottery"
-MAN_GOODS__COTTON = "Man. Goods / Cotton Mill"
-
-# industry
-GOODS = "goods"
-OIL = "oil"
-BEER = "beer"
-COTTON = "cotton"
-# POTTERY = ''
-COAL = "coal"
-IRON = "iron"
-
-TOWNS = [
+TOWNS: List[Town] = [
     Town(
         "blue",
         LEEK,
-        [BuildLocation([COTTON, GOODS]), BuildLocation([COTTON, COAL])],
+        [
+            BuildLocation([BuildingName.cotton, BuildingName.goods]),
+            BuildLocation([BuildingName.cotton, BuildingName.coal]),
+        ],
     ),
     Town(
         "blue",
         STOKE_ON_TRENT,
         [
-            BuildLocation([COTTON, GOODS]),
-            BuildLocation([POTTERY, OIL]),
-            BuildLocation([GOODS]),
+            BuildLocation([BuildingName.cotton, BuildingName.goods]),
+            BuildLocation([BuildingName.pottery, BuildingName.oil]),
+            BuildLocation([BuildingName.goods]),
         ],
     ),
     Town(
         "blue",
         STONE,
-        [BuildLocation([COTTON, BEER]), BuildLocation([GOODS, COAL])],
+        [
+            BuildLocation([BuildingName.cotton, BuildingName.beer]),
+            BuildLocation([BuildingName.goods, BuildingName.coal]),
+        ],
     ),
     Town(
         "blue",
         UTTOXETER,
-        [BuildLocation([GOODS, BEER]), BuildLocation([COTTON, BEER])],
+        [
+            BuildLocation([BuildingName.goods, BuildingName.beer]),
+            BuildLocation([BuildingName.cotton, BuildingName.beer]),
+        ],
     ),
     Town(
         "green",
         BELPER,
         [
-            BuildLocation([COTTON, GOODS]),
-            BuildLocation([COAL]),
-            BuildLocation([POTTERY]),
+            BuildLocation([BuildingName.cotton, BuildingName.goods]),
+            BuildLocation([BuildingName.coal]),
+            BuildLocation([BuildingName.pottery]),
         ],
     ),
     Town(
         "green",
         DERBY,
         [
-            BuildLocation([COTTON, BEER]),
-            BuildLocation([COTTON, GOODS]),
-            BuildLocation([OIL]),
+            BuildLocation([BuildingName.cotton, BuildingName.beer]),
+            BuildLocation([BuildingName.cotton, BuildingName.goods]),
+            BuildLocation([BuildingName.oil]),
         ],
     ),
     Town(
         "red",
         STAFFORD,
-        [BuildLocation([GOODS, BEER]), BuildLocation([POTTERY])],
+        [
+            BuildLocation([BuildingName.goods, BuildingName.beer]),
+            BuildLocation([BuildingName.pottery]),
+        ],
     ),
     Town(
         "red",
         BURTON_UPON_TRENT,
-        [BuildLocation([GOODS, COAL]), BuildLocation([BEER])],
+        [
+            BuildLocation([BuildingName.goods, BuildingName.coal]),
+            BuildLocation([BuildingName.beer]),
+        ],
     ),
-    Town(BEER1, "", [BuildLocation([BEER])]),
-    Town("red", "Cannock", [BuildLocation([GOODS, COAL]), BuildLocation([COAL])]),
+    Town(BEER1, "", [BuildLocation([BuildingName.beer])]),
+    Town(
+        "red",
+        "Cannock",
+        [
+            BuildLocation([BuildingName.goods, BuildingName.coal]),
+            BuildLocation([BuildingName.coal]),
+        ],
+    ),
     Town(
         "red",
         TAMWORTH,
-        [BuildLocation([COTTON, COAL]), BuildLocation([COTTON, COAL])],
+        [
+            BuildLocation([BuildingName.cotton, BuildingName.coal]),
+            BuildLocation([BuildingName.cotton, BuildingName.coal]),
+        ],
     ),
     Town(
         "red",
         WALSALL,
-        [BuildLocation([OIL, GOODS]), BuildLocation([GOODS, BEER])],
+        [
+            BuildLocation([BuildingName.oil, BuildingName.goods]),
+            BuildLocation([BuildingName.goods, BuildingName.beer]),
+        ],
     ),
     Town(
         "yellow",
         COALBROOKDALE,
         [
-            BuildLocation([OIL, BEER]),
-            BuildLocation([OIL]),
-            BuildLocation([COAL]),
+            BuildLocation([BuildingName.oil, BuildingName.beer]),
+            BuildLocation([BuildingName.oil]),
+            BuildLocation([BuildingName.coal]),
         ],
     ),
     Town(
         "yellow",
         WOLVERHAMPTON,
-        [BuildLocation([GOODS]), BuildLocation([GOODS, COAL])],
+        [
+            BuildLocation([BuildingName.goods]),
+            BuildLocation([BuildingName.goods, BuildingName.coal]),
+        ],
     ),
-    Town("yellow", DUDLEY, [BuildLocation([COAL]), BuildLocation([OIL])]),
+    Town(
+        "yellow",
+        DUDLEY,
+        [BuildLocation([BuildingName.coal]), BuildLocation([BuildingName.oil])],
+    ),
     Town(
         "yellow",
         KIDDERMINSTER,
-        [BuildLocation([COTTON, COAL]), BuildLocation([COTTON])],
+        [
+            BuildLocation([BuildingName.cotton, BuildingName.coal]),
+            BuildLocation([BuildingName.cotton]),
+        ],
     ),
-    Town(BEER2, "", [BuildLocation([BEER])]),
-    Town("yellow", WORCESTER, [BuildLocation([COTTON]), BuildLocation([COTTON])]),
+    Town(BEER2, "", [BuildLocation([BuildingName.beer])]),
+    Town(
+        "yellow",
+        WORCESTER,
+        [BuildLocation([BuildingName.cotton]), BuildLocation([BuildingName.cotton])],
+    ),
     Town(
         "purple",
         BIRMINGHAM,
         [
-            BuildLocation([COTTON, GOODS]),
-            BuildLocation([GOODS]),
-            BuildLocation([OIL]),
-            BuildLocation([GOODS]),
+            BuildLocation([BuildingName.cotton, BuildingName.goods]),
+            BuildLocation([BuildingName.goods]),
+            BuildLocation([BuildingName.oil]),
+            BuildLocation([BuildingName.goods]),
         ],
     ),
     Town(
         "purple",
         NUNEATON,
-        [BuildLocation([GOODS, BEER]), BuildLocation([COTTON, COAL])],
+        [
+            BuildLocation([BuildingName.goods, BuildingName.beer]),
+            BuildLocation([BuildingName.cotton, BuildingName.coal]),
+        ],
     ),
     Town(
         "purple",
         COVENTRY,
         [
-            BuildLocation([POTTERY]),
-            BuildLocation([GOODS, COAL]),
-            BuildLocation([OIL, GOODS]),
+            BuildLocation([BuildingName.pottery]),
+            BuildLocation([BuildingName.goods, BuildingName.coal]),
+            BuildLocation([BuildingName.oil, BuildingName.goods]),
         ],
     ),
-    Town("purple", REDDITCH, [BuildLocation([GOODS, COAL]), BuildLocation([OIL])]),
+    Town(
+        "purple",
+        REDDITCH,
+        [
+            BuildLocation([BuildingName.goods, BuildingName.coal]),
+            BuildLocation([BuildingName.oil]),
+        ],
+    ),
 ]
 
-TRADEPOSTS = [
+TRADEPOSTS: List[TradePost] = [
     TradePost(WARRINGTON, 2, 5, 0, 0, 2, False),
     TradePost(NOTTINGHAM, 2, 0, 3, 0, 2, False),
     TradePost(SHREWBURY, 1, 0, 4, 0, 2, False),
@@ -190,7 +232,7 @@ TRADEPOSTS = [
     TradePost(GLOUCESTER, 2, 0, 0, 2, 2, True),
 ]
 
-ROAD_LOCATIONS = [
+ROAD_LOCATIONS: List[RoadLocation] = [
     RoadLocation([WARRINGTON, STOKE_ON_TRENT]),
     RoadLocation([STOKE_ON_TRENT, LEEK]),
     RoadLocation([LEEK, BELPER], False),
@@ -233,53 +275,57 @@ ROAD_LOCATIONS = [
     RoadLocation([WORCESTER, BEER2, KIDDERMINSTER]),
 ]
 
-BUILDINGS = [
-    MarketBuilding(GOODS, 1, 8, 1, 0, 1, 3, 5, 2, onlyPhaseOne=True),
-    MarketBuilding(GOODS, 2, 10, 0, 1, 1, 5, 0, 1),
-    MarketBuilding(GOODS, 2, 10, 0, 1, 1, 5, 0, 1),
-    MarketBuilding(GOODS, 3, 12, 2, 0, 0, 4, 4, 0),
-    MarketBuilding(GOODS, 4, 8, 0, 1, 1, 3, 6, 1),
-    MarketBuilding(GOODS, 5, 16, 1, 0, 2, 8, 2, 2),
-    MarketBuilding(GOODS, 5, 16, 1, 0, 2, 8, 2, 2),
-    MarketBuilding(GOODS, 6, 20, 0, 0, 1, 7, 6, 1),
-    MarketBuilding(GOODS, 7, 16, 1, 1, 0, 9, 4, 0),
-    MarketBuilding(GOODS, 8, 20, 0, 2, 1, 11, 1, 1),
-    MarketBuilding(COTTON, 1, 12, 0, 0, 1, 5, 5, 1, onlyPhaseOne=True),
-    MarketBuilding(COTTON, 1, 12, 0, 0, 1, 5, 5, 1, onlyPhaseOne=True),
-    MarketBuilding(COTTON, 1, 12, 0, 0, 1, 5, 5, 1, onlyPhaseOne=True),
-    MarketBuilding(COTTON, 2, 14, 1, 0, 1, 5, 4, 2),
-    MarketBuilding(COTTON, 2, 14, 1, 0, 1, 5, 4, 2),
-    MarketBuilding(COTTON, 3, 16, 1, 1, 1, 9, 3, 1),
-    MarketBuilding(COTTON, 3, 16, 1, 1, 1, 9, 3, 1),
-    MarketBuilding(COTTON, 3, 16, 1, 1, 1, 9, 3, 1),
-    MarketBuilding(COTTON, 4, 18, 1, 1, 1, 12, 2, 1),
-    MarketBuilding(COTTON, 4, 18, 1, 1, 1, 12, 2, 1),
-    MarketBuilding(COTTON, 4, 18, 1, 1, 1, 12, 2, 1),
-    MarketBuilding(POTTERY, 1, 17, 0, 1, 1, 10, 5, 1, canBeDeveloped=False),
-    MarketBuilding(POTTERY, 2, 0, 1, 0, 1, 1, 1, 1),
-    MarketBuilding(POTTERY, 3, 22, 2, 0, 2, 11, 5, 1, canBeDeveloped=False),
-    MarketBuilding(POTTERY, 4, 0, 1, 0, 1, 1, 1, 1),
-    MarketBuilding(POTTERY, 5, 24, 2, 0, 2, 20, 5, 1, onlyPhaseTwo=True),
-    IndustryBuilding(OIL, 1, 4, 5, 1, 0, 3, 3, 1, onlyPhaseOne=True),
-    IndustryBuilding(OIL, 2, 4, 7, 1, 0, 5, 3, 1),
-    IndustryBuilding(OIL, 3, 5, 9, 1, 0, 7, 2, 1),
-    IndustryBuilding(OIL, 4, 6, 12, 1, 0, 9, 1, 1),
-    IndustryBuilding(BEER, 1, 1, 5, 0, 1, 4, 4, 2),
-    IndustryBuilding(BEER, 1, 1, 5, 0, 1, 4, 4, 2),
+BUILDINGS: List[Building] = [
+    MarketBuilding(BuildingName.goods, 1, 8, 1, 0, 1, 3, 5, 2, onlyPhaseOne=True),
+    MarketBuilding(BuildingName.goods, 2, 10, 0, 1, 1, 5, 0, 1),
+    MarketBuilding(BuildingName.goods, 2, 10, 0, 1, 1, 5, 0, 1),
+    MarketBuilding(BuildingName.goods, 3, 12, 2, 0, 0, 4, 4, 0),
+    MarketBuilding(BuildingName.goods, 4, 8, 0, 1, 1, 3, 6, 1),
+    MarketBuilding(BuildingName.goods, 5, 16, 1, 0, 2, 8, 2, 2),
+    MarketBuilding(BuildingName.goods, 5, 16, 1, 0, 2, 8, 2, 2),
+    MarketBuilding(BuildingName.goods, 6, 20, 0, 0, 1, 7, 6, 1),
+    MarketBuilding(BuildingName.goods, 7, 16, 1, 1, 0, 9, 4, 0),
+    MarketBuilding(BuildingName.goods, 8, 20, 0, 2, 1, 11, 1, 1),
+    MarketBuilding(BuildingName.cotton, 1, 12, 0, 0, 1, 5, 5, 1, onlyPhaseOne=True),
+    MarketBuilding(BuildingName.cotton, 1, 12, 0, 0, 1, 5, 5, 1, onlyPhaseOne=True),
+    MarketBuilding(BuildingName.cotton, 1, 12, 0, 0, 1, 5, 5, 1, onlyPhaseOne=True),
+    MarketBuilding(BuildingName.cotton, 2, 14, 1, 0, 1, 5, 4, 2),
+    MarketBuilding(BuildingName.cotton, 2, 14, 1, 0, 1, 5, 4, 2),
+    MarketBuilding(BuildingName.cotton, 3, 16, 1, 1, 1, 9, 3, 1),
+    MarketBuilding(BuildingName.cotton, 3, 16, 1, 1, 1, 9, 3, 1),
+    MarketBuilding(BuildingName.cotton, 3, 16, 1, 1, 1, 9, 3, 1),
+    MarketBuilding(BuildingName.cotton, 4, 18, 1, 1, 1, 12, 2, 1),
+    MarketBuilding(BuildingName.cotton, 4, 18, 1, 1, 1, 12, 2, 1),
+    MarketBuilding(BuildingName.cotton, 4, 18, 1, 1, 1, 12, 2, 1),
+    MarketBuilding(
+        BuildingName.pottery, 1, 17, 0, 1, 1, 10, 5, 1, canBeDeveloped=False
+    ),
+    MarketBuilding(BuildingName.pottery, 2, 0, 1, 0, 1, 1, 1, 1),
+    MarketBuilding(
+        BuildingName.pottery, 3, 22, 2, 0, 2, 11, 5, 1, canBeDeveloped=False
+    ),
+    MarketBuilding(BuildingName.pottery, 4, 0, 1, 0, 1, 1, 1, 1),
+    MarketBuilding(BuildingName.pottery, 5, 24, 2, 0, 2, 20, 5, 1, onlyPhaseTwo=True),
+    IndustryBuilding(BuildingName.oil, 1, 4, 5, 1, 0, 3, 3, 1, onlyPhaseOne=True),
+    IndustryBuilding(BuildingName.oil, 2, 4, 7, 1, 0, 5, 3, 1),
+    IndustryBuilding(BuildingName.oil, 3, 5, 9, 1, 0, 7, 2, 1),
+    IndustryBuilding(BuildingName.oil, 4, 6, 12, 1, 0, 9, 1, 1),
+    IndustryBuilding(BuildingName.beer, 1, 1, 5, 0, 1, 4, 4, 2),
+    IndustryBuilding(BuildingName.beer, 1, 1, 5, 0, 1, 4, 4, 2),
     IndustryBuilding(
-        BEER, 2, 1, 7, 0, 1, 5, 5, 2
+        BuildingName.beer, 2, 1, 7, 0, 1, 5, 5, 2
     ),  # add logic somewhere to add +1 beer to tier ^2 in second phase
-    IndustryBuilding(BEER, 2, 1, 7, 0, 1, 5, 5, 2),
-    IndustryBuilding(BEER, 3, 1, 9, 0, 1, 7, 5, 2),
-    IndustryBuilding(BEER, 3, 1, 9, 0, 1, 7, 5, 2),
-    IndustryBuilding(BEER, 4, 1, 9, 0, 1, 10, 5, 2),
-    IndustryBuilding(COAL, 1, 2, 5, 0, 0, 1, 4, 2, onlyPhaseOne=True),
-    IndustryBuilding(COAL, 2, 3, 7, 0, 0, 2, 7, 1),
-    IndustryBuilding(COAL, 2, 3, 7, 0, 0, 2, 7, 1),
-    IndustryBuilding(COAL, 3, 4, 8, 0, 1, 3, 6, 1),
-    IndustryBuilding(COAL, 3, 4, 8, 0, 1, 3, 6, 1),
-    IndustryBuilding(COAL, 4, 5, 10, 0, 1, 4, 5, 1),
-    IndustryBuilding(COAL, 4, 5, 10, 0, 1, 4, 5, 1),
+    IndustryBuilding(BuildingName.beer, 2, 1, 7, 0, 1, 5, 5, 2),
+    IndustryBuilding(BuildingName.beer, 3, 1, 9, 0, 1, 7, 5, 2),
+    IndustryBuilding(BuildingName.beer, 3, 1, 9, 0, 1, 7, 5, 2),
+    IndustryBuilding(BuildingName.beer, 4, 1, 9, 0, 1, 10, 5, 2),
+    IndustryBuilding(BuildingName.coal, 1, 2, 5, 0, 0, 1, 4, 2, onlyPhaseOne=True),
+    IndustryBuilding(BuildingName.coal, 2, 3, 7, 0, 0, 2, 7, 1),
+    IndustryBuilding(BuildingName.coal, 2, 3, 7, 0, 0, 2, 7, 1),
+    IndustryBuilding(BuildingName.coal, 3, 4, 8, 0, 1, 3, 6, 1),
+    IndustryBuilding(BuildingName.coal, 3, 4, 8, 0, 1, 3, 6, 1),
+    IndustryBuilding(BuildingName.coal, 4, 5, 10, 0, 1, 4, 5, 1),
+    IndustryBuilding(BuildingName.coal, 4, 5, 10, 0, 1, 4, 5, 1),
 ]
 
 """
@@ -287,7 +333,7 @@ Starting deck
 
 Key is (str) amount of players playing
 """
-STARTING_CARDS = {
+STARTING_CARDS: Dict[str, List[Card]] = {
     "2": [
         LocationCard(STAFFORD),
         LocationCard(STAFFORD),
@@ -316,19 +362,19 @@ STARTING_CARDS = {
         LocationCard(COVENTRY),
         LocationCard(NUNEATON),
         LocationCard(REDDITCH),
-        IndustryCard(IRON_WORKS),
-        IndustryCard(IRON_WORKS),
-        IndustryCard(IRON_WORKS),
-        IndustryCard(IRON_WORKS),
-        IndustryCard(COAL_MINE),
-        IndustryCard(COAL_MINE),
-        IndustryCard(POTTERY),
-        IndustryCard(POTTERY),
-        IndustryCard(BREWERY),
-        IndustryCard(BREWERY),
-        IndustryCard(BREWERY),
-        IndustryCard(BREWERY),
-        IndustryCard(BREWERY),
+        IndustryCard(CardName.iron_works),
+        IndustryCard(CardName.iron_works),
+        IndustryCard(CardName.iron_works),
+        IndustryCard(CardName.iron_works),
+        IndustryCard(CardName.coal_mine),
+        IndustryCard(CardName.coal_mine),
+        IndustryCard(CardName.pottery),
+        IndustryCard(CardName.pottery),
+        IndustryCard(CardName.brewery),
+        IndustryCard(CardName.brewery),
+        IndustryCard(CardName.brewery),
+        IndustryCard(CardName.brewery),
+        IndustryCard(CardName.brewery),
     ],
     "3": [
         LocationCard(LEEK),
@@ -366,25 +412,25 @@ STARTING_CARDS = {
         LocationCard(COVENTRY),
         LocationCard(NUNEATON),
         LocationCard(REDDITCH),
-        IndustryCard(IRON_WORKS),
-        IndustryCard(IRON_WORKS),
-        IndustryCard(IRON_WORKS),
-        IndustryCard(IRON_WORKS),
-        IndustryCard(COAL_MINE),
-        IndustryCard(COAL_MINE),
-        IndustryCard(COTTON),
-        IndustryCard(COTTON),
-        IndustryCard(COTTON),
-        IndustryCard(COTTON),
-        IndustryCard(COTTON),
-        IndustryCard(COTTON),
-        IndustryCard(POTTERY),
-        IndustryCard(POTTERY),
-        IndustryCard(BREWERY),
-        IndustryCard(BREWERY),
-        IndustryCard(BREWERY),
-        IndustryCard(BREWERY),
-        IndustryCard(BREWERY),
+        IndustryCard(CardName.iron_works),
+        IndustryCard(CardName.iron_works),
+        IndustryCard(CardName.iron_works),
+        IndustryCard(CardName.iron_works),
+        IndustryCard(CardName.coal_mine),
+        IndustryCard(CardName.coal_mine),
+        IndustryCard(BuildingName.cotton),
+        IndustryCard(BuildingName.cotton),
+        IndustryCard(BuildingName.cotton),
+        IndustryCard(BuildingName.cotton),
+        IndustryCard(BuildingName.cotton),
+        IndustryCard(BuildingName.cotton),
+        IndustryCard(CardName.pottery),
+        IndustryCard(CardName.pottery),
+        IndustryCard(CardName.brewery),
+        IndustryCard(CardName.brewery),
+        IndustryCard(CardName.brewery),
+        IndustryCard(CardName.brewery),
+        IndustryCard(CardName.brewery),
     ],
     "4": [
         LocationCard(BELPER),
@@ -428,45 +474,45 @@ STARTING_CARDS = {
         LocationCard(COVENTRY),
         LocationCard(NUNEATON),
         LocationCard(REDDITCH),
-        IndustryCard(IRON_WORKS),
-        IndustryCard(IRON_WORKS),
-        IndustryCard(IRON_WORKS),
-        IndustryCard(IRON_WORKS),
-        IndustryCard(COAL_MINE),
-        IndustryCard(COAL_MINE),
-        IndustryCard(COAL_MINE),
-        IndustryCard(MAN_GOODS__COTTON),  # Manufactured goods OR Cotton
-        IndustryCard(MAN_GOODS__COTTON),  # Manufactured goods OR Cotton
-        IndustryCard(MAN_GOODS__COTTON),  # Manufactured goods OR Cotton
-        IndustryCard(MAN_GOODS__COTTON),  # Manufactured goods OR Cotton
-        IndustryCard(MAN_GOODS__COTTON),  # Manufactured goods OR Cotton
-        IndustryCard(MAN_GOODS__COTTON),  # Manufactured goods OR Cotton
-        IndustryCard(MAN_GOODS__COTTON),  # Manufactured goods OR Cotton
-        IndustryCard(MAN_GOODS__COTTON),  # Manufactured goods OR Cotton
-        IndustryCard(POTTERY),
-        IndustryCard(POTTERY),
-        IndustryCard(POTTERY),
-        IndustryCard(BREWERY),
-        IndustryCard(BREWERY),
-        IndustryCard(BREWERY),
-        IndustryCard(BREWERY),
-        IndustryCard(BREWERY),
+        IndustryCard(CardName.iron_works),
+        IndustryCard(CardName.iron_works),
+        IndustryCard(CardName.iron_works),
+        IndustryCard(CardName.iron_works),
+        IndustryCard(CardName.coal_mine),
+        IndustryCard(CardName.coal_mine),
+        IndustryCard(CardName.coal_mine),
+        IndustryCard(CardName.man_goods_or_cotton),  # Manufactured goods OR Cotton
+        IndustryCard(CardName.man_goods_or_cotton),  # Manufactured goods OR Cotton
+        IndustryCard(CardName.man_goods_or_cotton),  # Manufactured goods OR Cotton
+        IndustryCard(CardName.man_goods_or_cotton),  # Manufactured goods OR Cotton
+        IndustryCard(CardName.man_goods_or_cotton),  # Manufactured goods OR Cotton
+        IndustryCard(CardName.man_goods_or_cotton),  # Manufactured goods OR Cotton
+        IndustryCard(CardName.man_goods_or_cotton),  # Manufactured goods OR Cotton
+        IndustryCard(CardName.man_goods_or_cotton),  # Manufactured goods OR Cotton
+        IndustryCard(CardName.pottery),
+        IndustryCard(CardName.pottery),
+        IndustryCard(CardName.pottery),
+        IndustryCard(CardName.brewery),
+        IndustryCard(CardName.brewery),
+        IndustryCard(CardName.brewery),
+        IndustryCard(CardName.brewery),
+        IndustryCard(CardName.brewery),
     ],
 }
 
-STARTING_WILD_LOCATION_CARDS = [
+STARTING_WILD_LOCATION_CARDS: List[Card] = [
     # idk how many wilds there are
-    LocationCard("Wild location", True),
-    LocationCard("Wild location", True),
-    LocationCard("Wild location", True),
-    LocationCard("Wild location", True),
-    LocationCard("Wild location", True),
+    LocationCard(CardName.wild_location, True),
+    LocationCard(CardName.wild_location, True),
+    LocationCard(CardName.wild_location, True),
+    LocationCard(CardName.wild_location, True),
+    LocationCard(CardName.wild_location, True),
 ]
 
-STARTING_WILD_BUILDING_CARDS = [
-    IndustryCard("Wild building", True),
-    IndustryCard("Wild building", True),
-    IndustryCard("Wild building", True),
-    IndustryCard("Wild building", True),
-    IndustryCard("Wild building", True),
+STARTING_WILD_BUILDING_CARDS: List[Card] = [
+    IndustryCard(CardName.wild_building, True),
+    IndustryCard(CardName.wild_building, True),
+    IndustryCard(CardName.wild_building, True),
+    IndustryCard(CardName.wild_building, True),
+    IndustryCard(CardName.wild_building, True),
 ]

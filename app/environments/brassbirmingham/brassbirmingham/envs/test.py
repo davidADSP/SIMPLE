@@ -49,7 +49,7 @@ class Test(unittest.TestCase):
         self.assertEqual(board.ironMarketPrice, 1, "Should be $1 coal price")
         self.assertEqual(len(board.players), 4, "Should be 4 players")
 
-        self.assertEqual(p1.buildings[0].name, GOODS, "Should be")
+        self.assertEqual(p1.buildings[0].name, BuildingName.goods, "Should be")
         self.assertEqual(
             len(p1.buildings), 44, "Should be 44 buildings tiles to start with"
         )

@@ -1,4 +1,5 @@
 from .building import Building
+from .enums import BuildingName, BuildingType
 
 
 class IndustryBuilding(Building):
@@ -20,20 +21,20 @@ class IndustryBuilding(Building):
 
     def __init__(
         self,
-        name,
-        tier,
-        resourceAmount,
-        cost,
-        coalCost,
-        ironCost,
-        victoryPointsGained,
-        incomeGained,
-        networkPoints,
+        name: BuildingName,
+        tier: int,
+        resourceAmount: int,
+        cost: int,
+        coalCost: int,
+        ironCost: int,
+        victoryPointsGained: int,
+        incomeGained: int,
+        networkPoints: int,
         onlyPhaseOne=False,
         onlyPhaseTwo=False,
     ):
         super(IndustryBuilding, self).__init__(
-            "industry",
+            BuildingType.industry,
             name,
             tier,
             cost,
