@@ -1,10 +1,14 @@
-from typing import List, Optional
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, List, Optional
 
 from python.id import id
 
 from .buildings.building import Building
 from .buildings.enums import BuildingName
-from .town import Town
+
+if TYPE_CHECKING:
+    from .town import Town
 
 
 class BuildLocation:

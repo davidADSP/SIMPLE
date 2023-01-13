@@ -1,10 +1,20 @@
-from typing import List, Optional
+from __future__ import annotations
 
-from consts import (CANAL_PRICE, ONE_RAILROAD_COAL_PRICE, ONE_RAILROAD_PRICE,
-                    ROAD_LOCATIONS, STARTING_CARDS,
-                    STARTING_WILD_BUILDING_CARDS, STARTING_WILD_LOCATION_CARDS,
-                    TOWNS, TRADEPOSTS, TWO_RAILROAD_COAL_PRICE,
-                    TWO_RAILROAD_PRICE)
+from typing import TYPE_CHECKING, List, Optional
+
+from consts import (
+    CANAL_PRICE,
+    ONE_RAILROAD_COAL_PRICE,
+    ONE_RAILROAD_PRICE,
+    ROAD_LOCATIONS,
+    STARTING_CARDS,
+    STARTING_WILD_BUILDING_CARDS,
+    STARTING_WILD_LOCATION_CARDS,
+    TOWNS,
+    TRADEPOSTS,
+    TWO_RAILROAD_COAL_PRICE,
+    TWO_RAILROAD_PRICE,
+)
 from python.id import id
 from python.print_colors import *
 
@@ -12,12 +22,14 @@ from .build_location import BuildLocation
 from .buildings.building import Building
 from .buildings.enums import BuildingName, BuildingType
 from .deck import Deck
-from .player import Player
 from .road_location import RoadLocation
 from .roads.canal import Canal
 from .roads.railroad import Railroad
 from .town import Town
 from .trade_post import TradePost
+
+if TYPE_CHECKING:
+    from .player import Player
 
 
 class Board:

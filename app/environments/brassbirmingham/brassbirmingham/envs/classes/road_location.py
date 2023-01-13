@@ -1,10 +1,13 @@
-from typing import List, Optional
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, List, Optional
 
 from python.id import id
 
-from .roads.road import Road
-from .town import Town
-from .trade_post import TradePost
+if TYPE_CHECKING:
+    from .roads.road import Road
+    from .town import Town
+    from .trade_post import TradePost
 
 
 class RoadLocation:

@@ -1,4 +1,10 @@
-from classes.player import Player
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from classes.player import Player
+
 from python.id import id
 
 from .enums import RoadType

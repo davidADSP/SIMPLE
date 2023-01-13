@@ -5,12 +5,20 @@ tf.get_logger().setLevel("INFO")
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 import tensorflow.keras.backend as K
-from stable_baselines.common.distributions import \
-    CategoricalProbabilityDistribution
+from stable_baselines.common.distributions import CategoricalProbabilityDistribution
 from stable_baselines.common.policies import ActorCriticPolicy
-from tensorflow.keras.layers import (Activation, Add, BatchNormalization,
-                                     Concatenate, Conv2D, Conv3D, Dense,
-                                     Flatten, Lambda, Multiply)
+from tensorflow.keras.layers import (
+    Activation,
+    Add,
+    BatchNormalization,
+    Concatenate,
+    Conv2D,
+    Conv3D,
+    Dense,
+    Flatten,
+    Lambda,
+    Multiply,
+)
 
 ACTIONS = 29
 FEATURE_SIZE = 64

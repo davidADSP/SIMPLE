@@ -1,14 +1,27 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .board import Board
+
 import copy
 
 from classes.hand import Hand
 from classes.roads.canal import Canal
-from consts import (BUILDINGS, CANAL_PRICE, ONE_RAILROAD_COAL_PRICE,
-                    ONE_RAILROAD_PRICE, STARTING_MONEY, STARTING_ROADS,
-                    TWO_RAILROAD_BEER_PRICE, TWO_RAILROAD_COAL_PRICE,
-                    TWO_RAILROAD_PRICE)
+from consts import (
+    BUILDINGS,
+    CANAL_PRICE,
+    ONE_RAILROAD_COAL_PRICE,
+    ONE_RAILROAD_PRICE,
+    STARTING_MONEY,
+    STARTING_ROADS,
+    TWO_RAILROAD_BEER_PRICE,
+    TWO_RAILROAD_COAL_PRICE,
+    TWO_RAILROAD_PRICE,
+)
 from python.id import id
 
-from .board import Board
 from .build_location import BuildLocation
 from .buildings.building import Building
 from .road_location import RoadLocation

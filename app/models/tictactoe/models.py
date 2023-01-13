@@ -5,10 +5,19 @@ tf.get_logger().setLevel("INFO")
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 from stable_baselines.common.distributions import (
-    CategoricalProbabilityDistribution, CategoricalProbabilityDistributionType)
+    CategoricalProbabilityDistribution,
+    CategoricalProbabilityDistributionType,
+)
 from stable_baselines.common.policies import ActorCriticPolicy
-from tensorflow.keras.layers import (Activation, Add, BatchNormalization,
-                                     Conv2D, Dense, Dropout, Flatten)
+from tensorflow.keras.layers import (
+    Activation,
+    Add,
+    BatchNormalization,
+    Conv2D,
+    Dense,
+    Dropout,
+    Flatten,
+)
 
 
 class CustomPolicy(ActorCriticPolicy):
