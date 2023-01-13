@@ -21,9 +21,9 @@ from .trade_post import TradePost
 
 
 class Board:
-    def __init__(self, num_players: int):
+    def __init__(self, numPlayers: int):
         self.id = id()
-        self.deck = Deck(STARTING_CARDS[str(num_players)])
+        self.deck = Deck(STARTING_CARDS[str(numPlayers)])
         self.wildBuildingDeck = Deck(STARTING_WILD_BUILDING_CARDS)
         self.wildLocationDeck = Deck(STARTING_WILD_LOCATION_CARDS)
         self.towns = TOWNS  # array of Town objects
@@ -107,7 +107,7 @@ class Board:
     :param towns: towns to search from, must be array [town]
     :param player: player to remove money from (if necessary)"""
 
-    def removeXCoal(self, X: int, towns: List[Town], player: Optional[Player]):
+    def removeXCoal(self, X: int, towns: List[Town], player: Player):
         for town in towns:
             availableCoal = self.getAvailableCoalBuildingsTradePosts(town)
             if availableCoal == 0:
@@ -142,7 +142,7 @@ class Board:
     :param towns: towns to search from, must be array [town]
     :param player: player to remove money from (if necessary)"""
 
-    def removeXBeer(self, X: int, towns: List[Town], player: Optional[Player]):
+    def removeXBeer(self, X: int, towns: List[Town], player: Player):
         for town in towns:
             availableBeer = self.getAvailableBeerBuildingsTradePosts(player, town)
             if availableBeer == 0:
