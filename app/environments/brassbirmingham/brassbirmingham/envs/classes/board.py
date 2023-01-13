@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List
 
 from consts import (
     CANAL_PRICE,
@@ -20,6 +20,7 @@ from python.print_colors import *
 
 from .build_location import BuildLocation
 from .buildings.building import Building
+from .buildings.industry_building import IndustryBuilding
 from .buildings.enums import BuildingName, BuildingType
 from .deck import Deck
 from .road_location import RoadLocation
@@ -101,9 +102,9 @@ class Board:
             town = q.pop(0)  # bfs
             # town = q.pop() #dfs
             # get town neighbors, add to q
-            for network in town.networks:
-                if network.isBuilt:
-                    for _town in network.towns:
+            for roadLocation in town.networks:
+                if roadLocation.isBuilt:
+                    for _town in roadLocation.towns:
                         if _town.id not in v:
                             q.append(_town)
                             v.append(_town.id)
@@ -184,7 +185,7 @@ class Board:
     
     :return: array of buildings which have coal resources"""
 
-    def getCoalBuildings(self) -> List[Building]:
+    def getCoalBuildings(self) -> List[IndustryBuilding]:
         l = []
         for building in self.getAllBuildings():
             if (
@@ -201,7 +202,7 @@ class Board:
     
     :return: array of buildings which have beer resources"""
 
-    def getBeerBuildings(self) -> List[Building]:
+    def getBeerBuildings(self) -> List[IndustryBuilding]:
         l = []
         for building in self.getAllBuildings():
             if (
@@ -218,7 +219,7 @@ class Board:
     
     :return: array of buildings which have iron resources"""
 
-    def getIronBuildings(self) -> List[Building]:
+    def getIronBuildings(self) -> List[IndustryBuilding]:
         l = []
         for building in self.getAllBuildings():
             if (
@@ -406,7 +407,7 @@ class Board:
 
     def getAvailableCoalBuildingsTradePosts(
         self, town: Town
-    ) -> List[Building | TradePost]:
+    ) -> List[IndustryBuilding | TradePost]:
         coalBuildings = self.getCoalBuildings()
         l = []
         for coalBuilding in coalBuildings:
