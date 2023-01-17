@@ -42,7 +42,7 @@ class Board:
         self.wildBuildingDeck = Deck(STARTING_WILD_BUILDING_CARDS)
         self.wildLocationDeck = Deck(STARTING_WILD_LOCATION_CARDS)
         self.towns = TOWNS  # array of Town objects
-        self.townMap = {}
+        self.townDict = {}
         self.tradePosts = TRADEPOSTS
         self.coalMarketRemaining = MAX_MARKET_COAL - 1 # coal market missing 1
         self.ironMarketRemaining = MAX_MARKET_IRON
@@ -52,7 +52,7 @@ class Board:
             town.addBoard(self)  # ref board to towns
 
         for town in self.towns:
-            self.townMap[town.name] = town
+            self.townDict[town.name] = town
         # network towns together
         for town in self.towns:
             for roadLocation in ROAD_LOCATIONS:

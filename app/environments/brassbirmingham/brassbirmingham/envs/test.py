@@ -94,8 +94,8 @@ class Test(unittest.TestCase):
     # test network search
     def testNetworkSearch(self):
         # print(board.towns)
-        redditch = board.townMap["Redditch"]
-        birmingham = board.townMap["Birmingham"]
+        redditch = board.townDict["Redditch"]
+        birmingham = board.townDict["Birmingham"]
         walsall = board.towns[11]
         cannock = board.towns[9]
         # build network from cannock to redditch, assert network
@@ -145,7 +145,7 @@ class Test(unittest.TestCase):
         p2.buildBuilding(p2.buildings[26], redditch.buildLocations[1])
         self.assertEqual(p2.money, 2, "Should be")  # 8-5-1
 
-        print(board.townMap)
+        print(board.townDict)
 
 
 if __name__ == "__main__":
