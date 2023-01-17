@@ -15,7 +15,7 @@ class BuildLocation:
     """
     BuildLocation - Town may have multiple build locations
 
-    :param possibleBuilds: possible buildings which can be built, any array of [cotton, beer, coal, oil, pot, goods]
+    :param possibleBuilds: possible buildings which can be built, any array of [cotton, beer, coal, iron, pot, goods]
     :param town: town
     """
 

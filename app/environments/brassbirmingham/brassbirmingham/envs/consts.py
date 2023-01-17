@@ -74,7 +74,7 @@ TOWNS: List[Town] = [
         STOKE_ON_TRENT,
         [
             BuildLocation([BuildingName.cotton, BuildingName.goods]),
-            BuildLocation([BuildingName.pottery, BuildingName.oil]),
+            BuildLocation([BuildingName.pottery, BuildingName.iron]),
             BuildLocation([BuildingName.goods]),
         ],
     ),
@@ -109,7 +109,7 @@ TOWNS: List[Town] = [
         [
             BuildLocation([BuildingName.cotton, BuildingName.beer]),
             BuildLocation([BuildingName.cotton, BuildingName.goods]),
-            BuildLocation([BuildingName.oil]),
+            BuildLocation([BuildingName.iron]),
         ],
     ),
     Town(
@@ -149,7 +149,7 @@ TOWNS: List[Town] = [
         "red",
         WALSALL,
         [
-            BuildLocation([BuildingName.oil, BuildingName.goods]),
+            BuildLocation([BuildingName.iron, BuildingName.goods]),
             BuildLocation([BuildingName.goods, BuildingName.beer]),
         ],
     ),
@@ -157,8 +157,8 @@ TOWNS: List[Town] = [
         "yellow",
         COALBROOKDALE,
         [
-            BuildLocation([BuildingName.oil, BuildingName.beer]),
-            BuildLocation([BuildingName.oil]),
+            BuildLocation([BuildingName.iron, BuildingName.beer]),
+            BuildLocation([BuildingName.iron]),
             BuildLocation([BuildingName.coal]),
         ],
     ),
@@ -173,7 +173,7 @@ TOWNS: List[Town] = [
     Town(
         "yellow",
         DUDLEY,
-        [BuildLocation([BuildingName.coal]), BuildLocation([BuildingName.oil])],
+        [BuildLocation([BuildingName.coal]), BuildLocation([BuildingName.iron])],
     ),
     Town(
         "yellow",
@@ -195,7 +195,7 @@ TOWNS: List[Town] = [
         [
             BuildLocation([BuildingName.cotton, BuildingName.goods]),
             BuildLocation([BuildingName.goods]),
-            BuildLocation([BuildingName.oil]),
+            BuildLocation([BuildingName.iron]),
             BuildLocation([BuildingName.goods]),
         ],
     ),
@@ -213,7 +213,7 @@ TOWNS: List[Town] = [
         [
             BuildLocation([BuildingName.pottery]),
             BuildLocation([BuildingName.goods, BuildingName.coal]),
-            BuildLocation([BuildingName.oil, BuildingName.goods]),
+            BuildLocation([BuildingName.iron, BuildingName.goods]),
         ],
     ),
     Town(
@@ -221,7 +221,7 @@ TOWNS: List[Town] = [
         REDDITCH,
         [
             BuildLocation([BuildingName.goods, BuildingName.coal]),
-            BuildLocation([BuildingName.oil]),
+            BuildLocation([BuildingName.iron]),
         ],
     ),
 ]
@@ -308,10 +308,10 @@ BUILDINGS: List[Building] = [
     ),
     MarketBuilding(BuildingName.pottery, 4, 0, 1, 0, 1, 1, 1, 1),
     MarketBuilding(BuildingName.pottery, 5, 24, 2, 0, 2, 20, 5, 1, onlyPhaseTwo=True),
-    IndustryBuilding(BuildingName.oil, 1, 4, 5, 1, 0, 3, 3, 1, onlyPhaseOne=True),
-    IndustryBuilding(BuildingName.oil, 2, 4, 7, 1, 0, 5, 3, 1),
-    IndustryBuilding(BuildingName.oil, 3, 5, 9, 1, 0, 7, 2, 1),
-    IndustryBuilding(BuildingName.oil, 4, 6, 12, 1, 0, 9, 1, 1),
+    IndustryBuilding(BuildingName.iron, 1, 4, 5, 1, 0, 3, 3, 1, onlyPhaseOne=True),
+    IndustryBuilding(BuildingName.iron, 2, 4, 7, 1, 0, 5, 3, 1),
+    IndustryBuilding(BuildingName.iron, 3, 5, 9, 1, 0, 7, 2, 1),
+    IndustryBuilding(BuildingName.iron, 4, 6, 12, 1, 0, 9, 1, 1),
     IndustryBuilding(BuildingName.beer, 1, 1, 5, 0, 1, 4, 4, 2),
     IndustryBuilding(BuildingName.beer, 1, 1, 5, 0, 1, 4, 4, 2),
     IndustryBuilding(
@@ -483,14 +483,14 @@ STARTING_CARDS: Dict[str, List[Card]] = {
         IndustryCard(CardName.coal_mine),
         IndustryCard(CardName.coal_mine),
         IndustryCard(CardName.coal_mine),
-        IndustryCard(CardName.man_goods_or_cotton),  # Manufactured goods OR Cotton
-        IndustryCard(CardName.man_goods_or_cotton),  # Manufactured goods OR Cotton
-        IndustryCard(CardName.man_goods_or_cotton),  # Manufactured goods OR Cotton
-        IndustryCard(CardName.man_goods_or_cotton),  # Manufactured goods OR Cotton
-        IndustryCard(CardName.man_goods_or_cotton),  # Manufactured goods OR Cotton
-        IndustryCard(CardName.man_goods_or_cotton),  # Manufactured goods OR Cotton
-        IndustryCard(CardName.man_goods_or_cotton),  # Manufactured goods OR Cotton
-        IndustryCard(CardName.man_goods_or_cotton),  # Manufactured goods OR Cotton
+        IndustryCard(CardName.man_goods_or_cotton),
+        IndustryCard(CardName.man_goods_or_cotton),
+        IndustryCard(CardName.man_goods_or_cotton),
+        IndustryCard(CardName.man_goods_or_cotton),
+        IndustryCard(CardName.man_goods_or_cotton),
+        IndustryCard(CardName.man_goods_or_cotton),
+        IndustryCard(CardName.man_goods_or_cotton),
+        IndustryCard(CardName.man_goods_or_cotton),
         IndustryCard(CardName.pottery),
         IndustryCard(CardName.pottery),
         IndustryCard(CardName.pottery),

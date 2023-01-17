@@ -419,22 +419,6 @@ class Board:
         return amount
 
     """
-    getAvailableIronAmount
-    
-    :param player: player inquiring
-    :param town: town where iron is required
-    :return: amount of iron"""
-
-    def getAvailableIronAmount(self) -> int:
-        ironBuildings = self.getIronBuildings()
-        amount = 0
-        for ironBuilding in ironBuildings:
-            amount += ironBuilding.resourceAmount
-        # trade post
-        amount += self.ironAmount
-        return amount
-
-    """
     getAvailableCoalBuildingsTradePosts
     
     :param town: town where coal is required

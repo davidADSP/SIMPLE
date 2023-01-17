@@ -28,11 +28,8 @@ class Town:
         self.buildLocations = buildLocations
         for buildLocation in self.buildLocations:
             buildLocation.addTown(self)
-        self.networks: List[
-            Town
-        ] = (
-            []
-        )  # networks to other towns ex: Town('Leek') would have [Town('Stoke-On-Trent'), Town('Belper')]
+        # networks to other towns ex: Town('Leek') would have [Town('Stoke-On-Trent'), Town('Belper')]
+        self.networks: List[RoadLocation] = []
 
     """
     addBoard

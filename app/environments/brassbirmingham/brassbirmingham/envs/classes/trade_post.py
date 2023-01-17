@@ -37,7 +37,7 @@ class TradePost:
         self.moneyGained = moneyGained
         self.victoryPointsGained = victoryPointsGained
         self.incomeGained = incomeGained
-        self.possibleTrades = []
+        self.possibleTrades = [] # list of
         self.networkPoints = networkPoints
         self.canDevelop = canDevelop
         self.networks: List[RoadLocation] = []
@@ -45,7 +45,7 @@ class TradePost:
     """
     addPossibleTrade
     game init use only
-    trades which are possible to make, array of Building object names 'oil', 'goods', etc...
+    trades which are possible to make, array of Building object names 'iron', 'goods', etc...
 
     :param possibleTrade: possibleTrade
     """

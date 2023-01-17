@@ -3,9 +3,8 @@ from enum import Enum
 
 class BuildingName(Enum):
     goods = "goods"
-    cotton = ("cotton",)
+    cotton = "cotton",
     pottery = "pottery"
-    oil = "oil"
     coal = "coal"
     beer = "beer"
     iron = "iron"

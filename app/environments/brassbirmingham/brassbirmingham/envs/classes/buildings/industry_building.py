@@ -6,7 +6,7 @@ class IndustryBuilding(Building):
     """
     Industry Building - industry baby!
 
-    :param name: any of [oil, coal, beer]
+    :param name: any of [iron, coal, beer]
     :param tier: ex: 3
     :param resourceAmount: current resource amount on building
     :param cost: cost
@@ -43,9 +43,9 @@ class IndustryBuilding(Building):
             victoryPointsGained,
             incomeGained,
             networkPoints,
-            True,
-            onlyPhaseOne,
-            onlyPhaseTwo,
+            canByDeveloped=True,
+            onlyPhaseOne=onlyPhaseOne,
+            onlyPhaseTwo=onlyPhaseTwo,
         )
         self.resourceAmount = resourceAmount
         self.resourcesType = name
