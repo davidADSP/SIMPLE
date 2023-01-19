@@ -1,5 +1,5 @@
 import uuid
 
 
-def id() -> uuid.UUID:
-    return uuid.uuid1()
+def id() -> str:
+    return str(uuid.uuid4())

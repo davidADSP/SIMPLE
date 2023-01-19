@@ -43,7 +43,7 @@ class IndustryBuilding(Building):
             victoryPointsGained,
             incomeGained,
             networkPoints,
-            canByDeveloped=True,
+            canBeDeveloped=True,
             onlyPhaseOne=onlyPhaseOne,
             onlyPhaseTwo=onlyPhaseTwo,
         )

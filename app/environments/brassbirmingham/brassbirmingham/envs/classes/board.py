@@ -1,33 +1,33 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, Dict, List
 
 from consts import (
     CANAL_PRICE,
+    MAX_MARKET_COAL,
+    MAX_MARKET_IRON,
     ONE_RAILROAD_COAL_PRICE,
     ONE_RAILROAD_PRICE,
     ROAD_LOCATIONS,
     STARTING_CARDS,
-    STARTING_WILD_BUILDING_CARDS,
-    STARTING_WILD_LOCATION_CARDS,
     TOWNS,
     TRADEPOSTS,
     TWO_RAILROAD_COAL_PRICE,
     TWO_RAILROAD_PRICE,
-    MAX_MARKET_COAL,
-    MAX_MARKET_IRON
 )
 from python.id import id
 from python.print_colors import *
 
 from .build_location import BuildLocation
 from .buildings.building import Building
-from .buildings.industry_building import IndustryBuilding
 from .buildings.enums import BuildingName, BuildingType
+from .buildings.industry_building import IndustryBuilding
 from .deck import Deck
+from .enums import Era
 from .road_location import RoadLocation
 from .roads.canal import Canal
 from .roads.railroad import Railroad
+from .roads.road import Road
 from .town import Town
 from .trade_post import TradePost
 
@@ -38,14 +38,13 @@ if TYPE_CHECKING:
 class Board:
     def __init__(self, numPlayers: int):
         self.id = id()
+        self.era = Era.canal
         self.deck = Deck(STARTING_CARDS[str(numPlayers)])
-        self.wildBuildingDeck = Deck(STARTING_WILD_BUILDING_CARDS)
-        self.wildLocationDeck = Deck(STARTING_WILD_LOCATION_CARDS)
         self.towns = TOWNS  # array of Town objects
         self.townDict = {}
         self.tradePosts = TRADEPOSTS
-        self.coalMarketRemaining = MAX_MARKET_COAL - 1 # coal market missing 1
-        self.ironMarketRemaining = MAX_MARKET_IRON
+        self.coalMarketRemaining = MAX_MARKET_COAL - 1  # coal market missing 1
+        self.ironMarketRemaining = MAX_MARKET_IRON - 2  # iron market missing 1
         self.players: List[Player] = []  # array of Player objects
 
         for town in self.towns:
@@ -103,12 +102,12 @@ class Board:
                 price += 2
             elif currCoalRemaining >= 13:
                 price += 1
-            currCoalRemaining = max(currCoalRemaining-1, 0)
+            currCoalRemaining = max(currCoalRemaining - 1, 0)
         return price
 
     def priceForIron(self, ironNeeded: int) -> int:
         price = 0
-        currIronRemaining = self.coalMarketRemaining
+        currIronRemaining = self.ironMarketRemaining
         for _ in range(ironNeeded):
             if currIronRemaining <= 0:
                 price += 6
@@ -117,14 +116,13 @@ class Board:
             elif currIronRemaining == 3 or currIronRemaining == 4:
                 price += 4
             elif currIronRemaining == 5 or currIronRemaining == 6:
-                price +=3
+                price += 3
             elif currIronRemaining == 7 or currIronRemaining == 8:
                 price += 2
             elif currIronRemaining >= 13:
                 price += 1
-            currIronRemaining = max(currIronRemaining-1, 0)
+            currIronRemaining = max(currIronRemaining - 1, 0)
         return price
-
 
     """
     areNetworked
@@ -340,12 +338,8 @@ class Board:
         # check for connection to tradeposts
         for tradePost in self.tradePosts:
             if self.areNetworked(town, tradePost):
-                # enough money for coal amount?
-                # tyler double check sale price on this
                 cost = self.priceForCoal(coalAmount)
-                if (
-                    money > cost
-                ):
+                if money > cost:
                     return True
         return False
 
@@ -377,9 +371,7 @@ class Board:
     """
 
     def isIronAvailableFromTradePosts(self, ironAmount: int, money: int) -> bool:
-        return (
-            money > self.priceForIron(ironAmount)
-        )
+        return money > self.priceForIron(ironAmount)
 
     """
     getAvailableCoalAmount
@@ -521,3 +513,24 @@ class Board:
         self.removeXBeer(building.sell, [building.town], player)
         building.sell(buildLocation)
         buildLocation.sellBuilding()
+
+    def getVictoryPoints(self) -> Dict[str, int]:
+        points = {player.id: player.victoryPoints for player in self.players}
+
+        for building in self.getAllBuildings():
+            if building.isSold:
+                points[building.owner.id] += building.victoryPointsGained
+
+        for roadLocation in ROAD_LOCATIONS:
+            if roadLocation.road:
+                print("HERE")
+                # print(roadLocation)
+                roadOwner = roadLocation.road.owner
+                for network in roadLocation.networks:
+                    if network.type == "TradePost":
+                        print(network.networkPoints)
+                        points[roadOwner.id] += network.networkPoints
+                    elif network.type == "Town":
+                        points[roadOwner.id] += network.getNetworkVictoryPoints()
+
+        return points

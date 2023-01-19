@@ -23,6 +23,7 @@ class Town:
 
     def __init__(self, color: str, name: str, buildLocations: List[BuildLocation]):
         self.id = id()
+        self.type = "Town"
         self.color = color
         self.name = name
         self.buildLocations = buildLocations
@@ -51,6 +52,13 @@ class Town:
     def addRoadLocation(self, roadLocation: RoadLocation):
         roadLocation.addTown(self)
         self.networks.append(roadLocation)
+
+    def getNetworkVictoryPoints(self):
+        networkVP = 0
+        for buildLocation in self.buildLocations:
+            if buildLocation.building:
+                networkVP += buildLocation.building.networkPoints
+        return networkVP
 
     def __str__(self) -> str:
         returnStr = ""

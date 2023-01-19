@@ -1,4 +1,11 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from python.id import id
+
+if TYPE_CHECKING:
+    from ..player import Player
 
 from .enums import BuildingName, BuildingType
 
@@ -63,7 +70,7 @@ class Building:
     :param owner: player
     """
 
-    def addOwner(self, owner):
+    def addOwner(self, owner: Player):
         self.owner = owner
 
     def build(self, buildLocation):

@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import Mock, MagicMock
 
 from classes.board import Board
 from classes.player import Player
@@ -36,17 +37,11 @@ class Test(unittest.TestCase):
             len(board.deck.cards), 64, "Should be 64 cards in a 4 player game"
         )
         self.assertEqual(
-            len(board.wildBuildingDeck.cards), 5, "Should be 5 wild building cards"
-        )
-        self.assertEqual(
-            len(board.wildLocationDeck.cards), 5, "Should be 5 wild location cards"
-        )
-        self.assertEqual(
-            board.coalMarketRemaining, 15, "Should be 15 coal on the market"
+            board.coalMarketRemaining, 13, "Should be 13 coal on the market"
         )
         self.assertEqual(board.ironMarketRemaining, 8, "Should be 8 iron on the market")
-        self.assertEqual(board.coalMarketPrice, 1, "Should be $1 coal price")
-        self.assertEqual(board.ironMarketPrice, 1, "Should be $1 coal price")
+        self.assertEqual(board.priceForCoal(1), 1, "Should be $1 coal price")
+        self.assertEqual(board.priceForIron(1), 2, "Should be $2 iron price")
         self.assertEqual(len(board.players), 4, "Should be 4 players")
 
         self.assertEqual(p1.buildings[0].name, BuildingName.goods, "Should be")
@@ -143,9 +138,133 @@ class Test(unittest.TestCase):
             "Should be",
         )
         p2.buildBuilding(p2.buildings[26], redditch.buildLocations[1])
-        self.assertEqual(p2.money, 2, "Should be")  # 8-5-1
+        self.assertEqual(p2.money, 1, "Should be")  # 8-5-2 (coal market missing 1)
 
         print(board.townDict)
+
+    def testResourceMarketPrice(self):
+        # Empty markets
+        board.coalMarketRemaining = 0
+        assert board.priceForCoal(4) == 4 * 8
+        board.ironMarketRemaining = 0
+        assert board.priceForIron(5) == 5 * 6
+
+        # Single needed
+        board.coalMarketRemaining = 8
+        assert board.priceForCoal(1) == 4
+        board.ironMarketRemaining = 8
+        assert board.priceForIron(1) == 2
+
+        # Single price jump
+        board.coalMarketRemaining = 8
+        assert board.priceForCoal(3) == 13
+        board.ironMarketRemaining = 8
+        assert board.priceForIron(3) == 7
+
+        # Big price jump
+        board.coalMarketRemaining = 13
+        assert board.priceForCoal(10) == 35
+        board.ironMarketRemaining = 8
+        assert board.priceForIron(10) == 40
+
+    def testVictoryPoints(self):
+        # Zero points
+        resetGame(2)
+        playerVPs = board.getVictoryPoints()
+
+        assert p1.id in playerVPs
+        assert p2.id in playerVPs
+
+        assert playerVPs[p1.id] == 0
+        assert playerVPs[p2.id] == 0
+
+        # Buildings Only
+        redditch = board.townDict["Redditch"]
+        birmingham = board.townDict["Birmingham"]
+        walsall = board.towns[11]
+        cannock = board.towns[9]
+        
+        p1CottonBuilding = p1.buildings[10]
+        p1.buildBuilding(p1CottonBuilding, birmingham.buildLocations[0])
+        p1CottonBuilding.sell() # 5
+
+        p2.canBuildBuilding = Mock(return_value=True)
+
+        p2.buildBuilding(p2.buildings[0], redditch.buildLocations[0])
+
+        p2Goods2Building = p2.buildings[1]
+        p2.buildBuilding(p2Goods2Building, walsall.buildLocations[0])
+        p2Goods2Building.sell() # 5
+
+        p2CoalBuilding = p2.buildings[37]
+        p2.buildBuilding(p2CoalBuilding, cannock.buildLocations[1])
+        p2CoalBuilding.sell() # 1
+
+        playerVPs = board.getVictoryPoints()
+
+        assert playerVPs[p1.id] == 5
+        assert playerVPs[p2.id] == 6
+
+        # With networks
+        p1.canBuildCanal = Mock(return_value=True)
+        p1.buildCanal(redditch.networks[1]) # 2
+
+        # print('\n\n\n\n\n\n\n\n')
+        # print(birmingham.networks[4])
+        # print(birmingham.networks[0])
+        # p1.buildCanal(birmingham.networks[4]) # 
+
+        p2.canBuildCanal = Mock(return_value=True)
+        
+        playerVPs = board.getVictoryPoints()
+
+        assert playerVPs[p1.id] == 5
+        assert playerVPs[p2.id] == 6
+
+        # p2.buildCanal(birmingham.networks[0])
+
+
+        # With initial VPs
+
+    def testIncomeLevel(self):
+        p1.income = 10
+        assert p1.incomeLevel() == 0
+
+        p1.income = 19
+        assert p1.incomeLevel() == 5
+
+        p1.income = 35
+        assert p1.incomeLevel() == 12
+
+        p1.income = 68
+        assert p1.incomeLevel() == 22
+
+        p1.income = 99
+        assert p1.incomeLevel() == 30
+
+        p1.income = 7
+        p1.decreaseIncomeLevel(2)
+        assert p1.income == 5
+
+        p1.income = 12
+        p1.decreaseIncomeLevel(1)
+        assert p1.income == 10
+
+        p1.income = 17
+        p1.decreaseIncomeLevel(2)
+        assert p1.income == 13
+
+        p1.income = 33
+        p1.decreaseIncomeLevel(3)
+        assert p1.income == 25
+
+        p1.income = 87
+        p1.decreaseIncomeLevel(2)
+        assert p1.income == 77
+
+        p1.income = 98
+        p1.decreaseIncomeLevel(3)
+        assert p1.income == 85
 
 
 if __name__ == "__main__":

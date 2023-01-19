@@ -6,7 +6,12 @@ if TYPE_CHECKING:
     from .board import Board
 
 import copy
+import math
 
+from classes.cards.card import Card
+from classes.cards.enums import CardName, CardType
+from classes.cards.industry_card import IndustryCard
+from classes.cards.location_card import LocationCard
 from classes.hand import Hand
 from classes.roads.canal import Canal
 from consts import (
@@ -34,7 +39,7 @@ class Player:
         self.board = board
         self.hand = Hand(self.board.deck)
         self.money = STARTING_MONEY
-        self.income = 0
+        self.income = 10
         self.victoryPoints = 0
         self.spentThisTurn = 0
         self.buildings = copy.deepcopy(
@@ -47,6 +52,50 @@ class Player:
             Canal(self) for x in range(STARTING_ROADS)
         ]  # canals/railroads, array of Road objects
         self.board.addPlayer(self)
+
+    def incomeLevel(self):
+        if self.income <= 10:
+            return self.income - 10
+        if self.income <= 30:
+            return math.ceil((self.income - 10) / 2)
+        if self.income <= 60:
+            return math.ceil(self.income / 3)
+        if self.income <= 96:
+            return 20 + math.ceil((self.income - 60) / 4)
+        return 30
+
+    def decreaseIncomeLevel(self, levels: int):
+        def decreaseLevel():
+            if self.income <= 11:
+                self.income -= 1
+            elif self.income == 12:
+                self.income -= 2
+            elif self.income <= 32:
+                self.income -= 3 - (self.income % 2)
+            elif self.income == 33:
+                self.income -= 4
+            elif self.income <= 63:
+                self.income -= (
+                    3 if self.income % 3 == 1 else 4 if self.income % 3 == 2 else 5
+                )
+            elif self.income == 64:
+                self.income -= 6
+            elif self.income <= 96:
+                self.income -= (
+                    4
+                    if self.income % 4 == 1
+                    else 5
+                    if self.income % 4 == 2
+                    else 6
+                    if self.income % 4 == 3
+                    else 7
+                )
+            else:
+                self.income = 93
+            self.income = max(self.income, 0)
+
+        for _ in range(levels):
+            decreaseLevel()
 
     def canAffordBuildingIndustryResources(
         self, buildLocation: BuildLocation, coalCost: int, ironCost: int
@@ -74,9 +123,8 @@ class Player:
     ) -> int:
         return (
             building.cost
-            + coalCost
-            * self.board.coalMarketPrice  # TODO Fix this (price is dependent)
-            + ironCost * self.board.ironMarketPrice  # TODO Fix this
+            + self.board.priceForCoal(coalCost)
+            + self.board.priceForIron(ironCost)
         )
 
     def canAffordCanal(self) -> bool:
@@ -186,14 +234,24 @@ class Player:
         )
 
     # 5 LOAN
-    # is there a limit to the amount of loans you can take out? minimum income? prob not
+    def canLoan(self) -> bool:
+        return self.income >= 3
 
     # 6 SCOUT
-    def canScout(self) -> bool:
-        return (
-            len(self.board.wildBuildingDeck) > 0
-            and len(self.board.wildLocationDeck) > 0
-        )
+    def canScout(self, additionalDiscard: Card) -> bool:
+        ownership = False
+        for card in self.hand.cards:
+            if card.name in [CardName.wild_location, CardName.wild_industry]:
+                # No scouting if player has at least 1 wild card already
+                return False
+            if card.id == additionalDiscard.id:
+                ownership = True
+
+        return ownership
+
+    # 7 PASS
+    def canPassTurn(self) -> bool:
+        return True
 
     """Actions"""
     # todo player discarding for actions
@@ -231,15 +289,21 @@ class Player:
 
     # 5 LOAN
     def loan(self):
-        self.income -= 3
+        assert self.canLoan()
+        self.decreaseIncomeLevel(3)
         self.money += 30
 
     # 6 SCOUT
-    def scout(self):
-        assert self.canScout()
-        # todo add wilds to player hand
-        self.hand.add(self.board.wildBuildingDeck.draw())
-        self.hand.add(self.board.wildLocationDeck.draw())
+    def scout(self, additionalDiscard: Card):
+        assert self.canScout(additionalDiscard)
+        self.hand.add(LocationCard(name=CardName.wild_location))
+        self.hand.add(IndustryCard(name=CardName.wild_industry))
+        self.hand.spendCard(additionalDiscard)
+
+    # 7 PASS
+    def passTurn(self):
+        assert self.canPassTurn()
+        return
 
     def __repr__(self) -> str:
         return self.name
