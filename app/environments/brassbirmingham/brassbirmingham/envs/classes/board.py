@@ -1,6 +1,6 @@
 from __future__ import annotations
-
 from typing import TYPE_CHECKING, Dict, List
+import copy
 
 from consts import (
     CANAL_PRICE,
@@ -45,6 +45,7 @@ class Board:
         self.tradePosts = TRADEPOSTS
         self.coalMarketRemaining = MAX_MARKET_COAL - 1  # coal market missing 1
         self.ironMarketRemaining = MAX_MARKET_IRON - 2  # iron market missing 1
+        self.roadLocations = copy.deepcopy(ROAD_LOCATIONS)
         self.players: List[Player] = []  # array of Player objects
 
         for town in self.towns:
@@ -54,13 +55,13 @@ class Board:
             self.townDict[town.name] = town
         # network towns together
         for town in self.towns:
-            for roadLocation in ROAD_LOCATIONS:
-                # print(roadLocation.networks)
+            print(f'{town=}')
+            for roadLocation in self.roadLocations:
                 if town.name in roadLocation.networks:
                     # print(f"adding {town.name}")
                     town.addRoadLocation(roadLocation)
         for tradePost in self.tradePosts:
-            for roadLocation in ROAD_LOCATIONS:
+            for roadLocation in self.roadLocations:
                 if tradePost.name in roadLocation.networks:
                     tradePost.addRoadLocation(roadLocation)
 
@@ -406,7 +407,7 @@ class Board:
                 amount += beerBuilding.resourceAmount
         for tradePost in self.tradePosts:
             if self.areNetworked(town, tradePost):
-                amount += self.beerAmount
+                amount += tradePost.beerAmount
                 break
         return amount
 
@@ -508,11 +509,10 @@ class Board:
     """
 
     def sellBuilding(
-        self, building: Building, buildLocation: BuildLocation, player: Player
+        self, building: Building, player: Player
     ):
-        self.removeXBeer(building.sell, [building.town], player)
-        building.sell(buildLocation)
-        buildLocation.sellBuilding()
+        self.removeXBeer(building.beerCost, [building.town], player)
+        building.sell()
 
     def getVictoryPoints(self) -> Dict[str, int]:
         points = {player.id: player.victoryPoints for player in self.players}
@@ -521,16 +521,22 @@ class Board:
             if building.isSold:
                 points[building.owner.id] += building.victoryPointsGained
 
-        for roadLocation in ROAD_LOCATIONS:
+        for roadLocation in self.roadLocations:
             if roadLocation.road:
-                print("HERE")
+                print(roadLocation)
+                print(roadLocation.road)
+                print('HERE')
                 # print(roadLocation)
                 roadOwner = roadLocation.road.owner
-                for network in roadLocation.networks:
-                    if network.type == "TradePost":
-                        print(network.networkPoints)
-                        points[roadOwner.id] += network.networkPoints
-                    elif network.type == "Town":
-                        points[roadOwner.id] += network.getNetworkVictoryPoints()
+                for town in self.towns:
+                    for network in town.networks:
+                        if network == roadLocation:
+                            print(network)
+                            print('found match!')
+                            if town.type == "TradePost":
+                                print(network.networkPoints)
+                                points[roadOwner.id] += network.networkPoints
+                            elif network.type == "Town":
+                                points[roadOwner.id] += network.getNetworkVictoryPoints()
 
         return points

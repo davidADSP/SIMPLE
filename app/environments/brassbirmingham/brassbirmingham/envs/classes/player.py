@@ -9,6 +9,7 @@ import copy
 import math
 
 from classes.cards.card import Card
+from classes.buildings.enums import BuildingType
 from classes.cards.enums import CardName, CardType
 from classes.cards.industry_card import IndustryCard
 from classes.cards.location_card import LocationCard
@@ -29,6 +30,7 @@ from python.id import id
 
 from .build_location import BuildLocation
 from .buildings.building import Building
+from .buildings.market_building import MarketBuilding
 from .road_location import RoadLocation
 
 
@@ -171,7 +173,8 @@ class Player:
             roadLocation2
         )
 
-    def canAffordSellBuilding(self, building: Building) -> bool:
+    def canAffordSellBuilding(self, building: MarketBuilding) -> bool:
+        assert building.type == BuildingType.market
         return building.beerCost <= self.board.getAvailableBeerAmount(
             self, building.town
         )
@@ -225,12 +228,11 @@ class Player:
         )
 
     # 4 SELL
-    def canSell(self, building: Building, buildLocation: BuildLocation) -> bool:
+    def canSell(self, building: Building) -> bool:
         return (
             building.isActive
             and building.owner == self
             and self.canAffordSellBuilding(building)
-            and buildLocation.building
         )
 
     # 5 LOAN
@@ -283,9 +285,9 @@ class Player:
         building2.isRetired = True
 
     # 4 SELL
-    def sell(self, building: Building, buildLocation: BuildLocation):
+    def sell(self, building: Building):
         assert self.canSell(building)
-        self.board.sellBuilding(building, buildLocation, self)
+        self.board.sellBuilding(building, self)
 
     # 5 LOAN
     def loan(self):

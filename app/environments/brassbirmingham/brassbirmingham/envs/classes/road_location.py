@@ -21,7 +21,7 @@ class RoadLocation:
 
     def __init__(
         self,
-        networks: List[Town | TradePost],
+        networks: List[str],
         canBuildCanal=True,
         canBuildRailroad=True,
     ):

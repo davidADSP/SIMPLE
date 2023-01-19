@@ -80,7 +80,7 @@ class Building:
     def sell(self):
         self.isActive = False
         self.isSold = True
-        self.isRetired = True
+        # self.isRetired = True
         self.town = None
 
     def __repr__(self) -> str:
