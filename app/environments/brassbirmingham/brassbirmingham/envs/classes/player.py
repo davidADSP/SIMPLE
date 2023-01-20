@@ -8,24 +8,17 @@ if TYPE_CHECKING:
 import copy
 import math
 
-from classes.cards.card import Card
 from classes.buildings.enums import BuildingType
+from classes.cards.card import Card
 from classes.cards.enums import CardName, CardType
 from classes.cards.industry_card import IndustryCard
 from classes.cards.location_card import LocationCard
 from classes.hand import Hand
 from classes.roads.canal import Canal
-from consts import (
-    BUILDINGS,
-    CANAL_PRICE,
-    ONE_RAILROAD_COAL_PRICE,
-    ONE_RAILROAD_PRICE,
-    STARTING_MONEY,
-    STARTING_ROADS,
-    TWO_RAILROAD_BEER_PRICE,
-    TWO_RAILROAD_COAL_PRICE,
-    TWO_RAILROAD_PRICE,
-)
+from consts import (BUILDINGS, CANAL_PRICE, ONE_RAILROAD_COAL_PRICE,
+                    ONE_RAILROAD_PRICE, STARTING_MONEY, STARTING_ROADS,
+                    TWO_RAILROAD_BEER_PRICE, TWO_RAILROAD_COAL_PRICE,
+                    TWO_RAILROAD_PRICE)
 from python.id import id
 
 from .build_location import BuildLocation
@@ -228,7 +221,7 @@ class Player:
         )
 
     # 4 SELL
-    def canSell(self, building: Building) -> bool:
+    def canSell(self, building: MarketBuilding) -> bool:
         return (
             building.isActive
             and building.owner == self
@@ -285,7 +278,7 @@ class Player:
         building2.isRetired = True
 
     # 4 SELL
-    def sell(self, building: Building):
+    def sell(self, building: MarketBuilding):
         assert self.canSell(building)
         self.board.sellBuilding(building, self)
 

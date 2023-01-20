@@ -1,5 +1,6 @@
 from consts import *
-from python.print_colors import prCyan, prGreen, prLightGray, prPurple, prRed, prYellow
+from python.print_colors import (prCyan, prGreen, prLightGray, prPurple, prRed,
+                                 prYellow)
 
 from .card import Card
 from .enums import CardName, CardType

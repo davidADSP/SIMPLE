@@ -7,7 +7,6 @@ from python.id import id
 if TYPE_CHECKING:
     from .roads.road import Road
     from .town import Town
-    from .trade_post import TradePost
 
 
 class RoadLocation:
