@@ -6,24 +6,24 @@ if TYPE_CHECKING:
     from .board import Board
 
 import copy
+import math
 
+from classes.buildings.enums import BuildingType
+from classes.cards.card import Card
+from classes.cards.enums import CardName, CardType
+from classes.cards.industry_card import IndustryCard
+from classes.cards.location_card import LocationCard
 from classes.hand import Hand
 from classes.roads.canal import Canal
-from consts import (
-    BUILDINGS,
-    CANAL_PRICE,
-    ONE_RAILROAD_COAL_PRICE,
-    ONE_RAILROAD_PRICE,
-    STARTING_MONEY,
-    STARTING_ROADS,
-    TWO_RAILROAD_BEER_PRICE,
-    TWO_RAILROAD_COAL_PRICE,
-    TWO_RAILROAD_PRICE,
-)
+from consts import (BUILDINGS, CANAL_PRICE, ONE_RAILROAD_COAL_PRICE,
+                    ONE_RAILROAD_PRICE, STARTING_MONEY, STARTING_ROADS,
+                    TWO_RAILROAD_BEER_PRICE, TWO_RAILROAD_COAL_PRICE,
+                    TWO_RAILROAD_PRICE)
 from python.id import id
 
 from .build_location import BuildLocation
 from .buildings.building import Building
+from .buildings.market_building import MarketBuilding
 from .road_location import RoadLocation
 
 
@@ -34,7 +34,7 @@ class Player:
         self.board = board
         self.hand = Hand(self.board.deck)
         self.money = STARTING_MONEY
-        self.income = 0
+        self.income = 10
         self.victoryPoints = 0
         self.spentThisTurn = 0
         self.buildings = copy.deepcopy(
@@ -47,6 +47,50 @@ class Player:
             Canal(self) for x in range(STARTING_ROADS)
         ]  # canals/railroads, array of Road objects
         self.board.addPlayer(self)
+
+    def incomeLevel(self):
+        if self.income <= 10:
+            return self.income - 10
+        if self.income <= 30:
+            return math.ceil((self.income - 10) / 2)
+        if self.income <= 60:
+            return math.ceil(self.income / 3)
+        if self.income <= 96:
+            return 20 + math.ceil((self.income - 60) / 4)
+        return 30
+
+    def decreaseIncomeLevel(self, levels: int):
+        def decreaseLevel():
+            if self.income <= 11:
+                self.income -= 1
+            elif self.income == 12:
+                self.income -= 2
+            elif self.income <= 32:
+                self.income -= 3 - (self.income % 2)
+            elif self.income == 33:
+                self.income -= 4
+            elif self.income <= 63:
+                self.income -= (
+                    3 if self.income % 3 == 1 else 4 if self.income % 3 == 2 else 5
+                )
+            elif self.income == 64:
+                self.income -= 6
+            elif self.income <= 96:
+                self.income -= (
+                    4
+                    if self.income % 4 == 1
+                    else 5
+                    if self.income % 4 == 2
+                    else 6
+                    if self.income % 4 == 3
+                    else 7
+                )
+            else:
+                self.income = 93
+            self.income = max(self.income, 0)
+
+        for _ in range(levels):
+            decreaseLevel()
 
     def canAffordBuildingIndustryResources(
         self, buildLocation: BuildLocation, coalCost: int, ironCost: int
@@ -74,9 +118,8 @@ class Player:
     ) -> int:
         return (
             building.cost
-            + coalCost
-            * self.board.coalMarketPrice  # TODO Fix this (price is dependent)
-            + ironCost * self.board.ironMarketPrice  # TODO Fix this
+            + self.board.priceForCoal(coalCost)
+            + self.board.priceForIron(ironCost)
         )
 
     def canAffordCanal(self) -> bool:
@@ -123,7 +166,8 @@ class Player:
             roadLocation2
         )
 
-    def canAffordSellBuilding(self, building: Building) -> bool:
+    def canAffordSellBuilding(self, building: MarketBuilding) -> bool:
+        assert building.type == BuildingType.market
         return building.beerCost <= self.board.getAvailableBeerAmount(
             self, building.town
         )
@@ -177,23 +221,32 @@ class Player:
         )
 
     # 4 SELL
-    def canSell(self, building: Building, buildLocation: BuildLocation) -> bool:
+    def canSell(self, building: MarketBuilding) -> bool:
         return (
             building.isActive
             and building.owner == self
             and self.canAffordSellBuilding(building)
-            and buildLocation.building
         )
 
     # 5 LOAN
-    # is there a limit to the amount of loans you can take out? minimum income? prob not
+    def canLoan(self) -> bool:
+        return self.income >= 3
 
     # 6 SCOUT
-    def canScout(self) -> bool:
-        return (
-            len(self.board.wildBuildingDeck) > 0
-            and len(self.board.wildLocationDeck) > 0
-        )
+    def canScout(self, additionalDiscard: Card) -> bool:
+        ownership = False
+        for card in self.hand.cards:
+            if card.name in [CardName.wild_location, CardName.wild_industry]:
+                # No scouting if player has at least 1 wild card already
+                return False
+            if card.id == additionalDiscard.id:
+                ownership = True
+
+        return ownership
+
+    # 7 PASS
+    def canPassTurn(self) -> bool:
+        return True
 
     """Actions"""
     # todo player discarding for actions
@@ -225,21 +278,27 @@ class Player:
         building2.isRetired = True
 
     # 4 SELL
-    def sell(self, building: Building, buildLocation: BuildLocation):
+    def sell(self, building: MarketBuilding):
         assert self.canSell(building)
-        self.board.sellBuilding(building, buildLocation, self)
+        self.board.sellBuilding(building, self)
 
     # 5 LOAN
     def loan(self):
-        self.income -= 3
+        assert self.canLoan()
+        self.decreaseIncomeLevel(3)
         self.money += 30
 
     # 6 SCOUT
-    def scout(self):
-        assert self.canScout()
-        # todo add wilds to player hand
-        self.hand.add(self.board.wildBuildingDeck.draw())
-        self.hand.add(self.board.wildLocationDeck.draw())
+    def scout(self, additionalDiscard: Card):
+        assert self.canScout(additionalDiscard)
+        self.hand.add(LocationCard(name=CardName.wild_location))
+        self.hand.add(IndustryCard(name=CardName.wild_industry))
+        self.hand.spendCard(additionalDiscard)
+
+    # 7 PASS
+    def passTurn(self):
+        assert self.canPassTurn()
+        return
 
     def __repr__(self) -> str:
         return self.name

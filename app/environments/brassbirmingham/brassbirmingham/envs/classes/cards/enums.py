@@ -13,4 +13,4 @@ class CardName(Enum):
     pottery = "pottery"
     man_goods_or_cotton = "man_goods_or_cotton"
     wild_location = "wild_location"
-    wild_building = "wild_building"
+    wild_industry = "wild_industry"

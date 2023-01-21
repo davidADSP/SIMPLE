@@ -26,6 +26,9 @@ class Hand:
         )  # remove that card from hand
         self.deck.discardPile.append(card)
 
+    def add(self, card: Card):
+        self.cards.append(card)
+
     """
     getTotal
     

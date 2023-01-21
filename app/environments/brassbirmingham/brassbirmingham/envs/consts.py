@@ -501,20 +501,3 @@ STARTING_CARDS: Dict[str, List[Card]] = {
         IndustryCard(CardName.brewery),
     ],
 }
-
-STARTING_WILD_LOCATION_CARDS: List[Card] = [
-    # idk how many wilds there are
-    LocationCard(CardName.wild_location, True),
-    LocationCard(CardName.wild_location, True),
-    LocationCard(CardName.wild_location, True),
-    LocationCard(CardName.wild_location, True),
-    LocationCard(CardName.wild_location, True),
-]
-
-STARTING_WILD_BUILDING_CARDS: List[Card] = [
-    IndustryCard(CardName.wild_building, True),
-    IndustryCard(CardName.wild_building, True),
-    IndustryCard(CardName.wild_building, True),
-    IndustryCard(CardName.wild_building, True),
-    IndustryCard(CardName.wild_building, True),
-]

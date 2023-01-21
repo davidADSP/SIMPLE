@@ -1,4 +1,11 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from python.id import id
+
+if TYPE_CHECKING:
+    from ..player import Player
 
 from .enums import BuildingName, BuildingType
 
@@ -55,6 +62,7 @@ class Building:
         self.isRetired = (
             False  # only used for retired buildings (tier 1's) in second phase
         )
+        self.isFlipped = False
 
     """
     addOwner - add player/owner to building
@@ -63,18 +71,12 @@ class Building:
     :param owner: player
     """
 
-    def addOwner(self, owner):
+    def addOwner(self, owner: Player):
         self.owner = owner
 
     def build(self, buildLocation):
         self.isActive = True
         self.town = buildLocation.town
-
-    def sell(self):
-        self.isActive = False
-        self.isSold = True
-        self.isRetired = True
-        self.town = None
 
     def __repr__(self) -> str:
         return f"\nBuilding {self.tier}:{self.name}:: Owner: {self.owner}, Bought: {self.isActive}, Sold: {self.isSold} Retired: {self.isRetired}"

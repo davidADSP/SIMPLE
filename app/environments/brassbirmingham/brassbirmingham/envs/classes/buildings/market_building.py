@@ -50,3 +50,9 @@ class MarketBuilding(Building):
             onlyPhaseTwo,
         )
         self.beerCost = beerCost
+
+    def sell(self):
+        self.isActive = False
+        self.isSold = True
+        self.town = None
+        self.isFlipped = True

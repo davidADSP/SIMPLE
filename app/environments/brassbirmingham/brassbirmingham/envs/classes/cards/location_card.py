@@ -1,5 +1,6 @@
 from consts import *
-from python.print_colors import prCyan, prGreen, prLightGray, prPurple, prRed, prYellow
+from python.print_colors import (prCyan, prGreen, prLightGray, prPurple, prRed,
+                                 prYellow)
 
 from .card import Card
 from .enums import CardName, CardType
@@ -7,9 +8,9 @@ from .enums import CardName, CardType
 
 class LocationCard(Card):
     def __init__(self, name: CardName, isWild=False):
-        super(LocationCard, self).__init__(CardType.location)
-        self.name = name
+        super(LocationCard, self).__init__(CardType.location, name=name)
         self.isWild = isWild
+        self.isWild = name == CardName.wild_location
 
     def __str__(self) -> str:
         if self.isWild:

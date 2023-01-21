@@ -1,33 +1,26 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List
+import copy
+from typing import TYPE_CHECKING, Dict, List
 
-from consts import (
-    CANAL_PRICE,
-    ONE_RAILROAD_COAL_PRICE,
-    ONE_RAILROAD_PRICE,
-    ROAD_LOCATIONS,
-    STARTING_CARDS,
-    STARTING_WILD_BUILDING_CARDS,
-    STARTING_WILD_LOCATION_CARDS,
-    TOWNS,
-    TRADEPOSTS,
-    TWO_RAILROAD_COAL_PRICE,
-    TWO_RAILROAD_PRICE,
-    MAX_MARKET_COAL,
-    MAX_MARKET_IRON
-)
+from consts import (CANAL_PRICE, MAX_MARKET_COAL, MAX_MARKET_IRON,
+                    ONE_RAILROAD_COAL_PRICE, ONE_RAILROAD_PRICE,
+                    ROAD_LOCATIONS, STARTING_CARDS, TOWNS, TRADEPOSTS,
+                    TWO_RAILROAD_COAL_PRICE, TWO_RAILROAD_PRICE)
 from python.id import id
 from python.print_colors import *
 
 from .build_location import BuildLocation
 from .buildings.building import Building
-from .buildings.industry_building import IndustryBuilding
 from .buildings.enums import BuildingName, BuildingType
+from .buildings.industry_building import IndustryBuilding
+from .buildings.market_building import MarketBuilding
 from .deck import Deck
+from .enums import Era
 from .road_location import RoadLocation
 from .roads.canal import Canal
 from .roads.railroad import Railroad
+from .roads.road import Road
 from .town import Town
 from .trade_post import TradePost
 
@@ -38,14 +31,14 @@ if TYPE_CHECKING:
 class Board:
     def __init__(self, numPlayers: int):
         self.id = id()
+        self.era = Era.canal
         self.deck = Deck(STARTING_CARDS[str(numPlayers)])
-        self.wildBuildingDeck = Deck(STARTING_WILD_BUILDING_CARDS)
-        self.wildLocationDeck = Deck(STARTING_WILD_LOCATION_CARDS)
-        self.towns = TOWNS  # array of Town objects
+        self.towns = copy.deepcopy(TOWNS)  # array of Town objects
         self.townDict = {}
-        self.tradePosts = TRADEPOSTS
-        self.coalMarketRemaining = MAX_MARKET_COAL - 1 # coal market missing 1
-        self.ironMarketRemaining = MAX_MARKET_IRON
+        self.tradePosts = copy.deepcopy(TRADEPOSTS)
+        self.coalMarketRemaining = MAX_MARKET_COAL - 1  # coal market missing 1
+        self.ironMarketRemaining = MAX_MARKET_IRON - 2  # iron market missing 1
+        self.roadLocations = copy.deepcopy(ROAD_LOCATIONS)
         self.players: List[Player] = []  # array of Player objects
 
         for town in self.towns:
@@ -55,13 +48,11 @@ class Board:
             self.townDict[town.name] = town
         # network towns together
         for town in self.towns:
-            for roadLocation in ROAD_LOCATIONS:
-                # print(roadLocation.networks)
+            for roadLocation in self.roadLocations:
                 if town.name in roadLocation.networks:
-                    # print(f"adding {town.name}")
                     town.addRoadLocation(roadLocation)
         for tradePost in self.tradePosts:
-            for roadLocation in ROAD_LOCATIONS:
+            for roadLocation in self.roadLocations:
                 if tradePost.name in roadLocation.networks:
                     tradePost.addRoadLocation(roadLocation)
 
@@ -103,12 +94,12 @@ class Board:
                 price += 2
             elif currCoalRemaining >= 13:
                 price += 1
-            currCoalRemaining = max(currCoalRemaining-1, 0)
+            currCoalRemaining = max(currCoalRemaining - 1, 0)
         return price
 
     def priceForIron(self, ironNeeded: int) -> int:
         price = 0
-        currIronRemaining = self.coalMarketRemaining
+        currIronRemaining = self.ironMarketRemaining
         for _ in range(ironNeeded):
             if currIronRemaining <= 0:
                 price += 6
@@ -117,14 +108,13 @@ class Board:
             elif currIronRemaining == 3 or currIronRemaining == 4:
                 price += 4
             elif currIronRemaining == 5 or currIronRemaining == 6:
-                price +=3
+                price += 3
             elif currIronRemaining == 7 or currIronRemaining == 8:
                 price += 2
             elif currIronRemaining >= 13:
                 price += 1
-            currIronRemaining = max(currIronRemaining-1, 0)
+            currIronRemaining = max(currIronRemaining - 1, 0)
         return price
-
 
     """
     areNetworked
@@ -137,13 +127,11 @@ class Board:
     def areNetworked(
         self, town1: Town | Building | TradePost, town2: Town | Building | TradePost
     ) -> bool:
-        # print(f"Is there a network from {town1} to {town2}?")
         q = [town1]
         v = [town1.id]
 
         while q:
             town = q.pop(0)  # bfs
-            # town = q.pop() #dfs
             # get town neighbors, add to q
             for roadLocation in town.networks:
                 if roadLocation.isBuilt:
@@ -151,7 +139,6 @@ class Board:
                         if _town.id not in v:
                             q.append(_town)
                             v.append(_town.id)
-                            # print(f"{_town=}, {town2=}, isRoadBuilt? {network.isBuilt}")
                             if _town.id == town2.id:
                                 return True
         return False
@@ -180,7 +167,7 @@ class Board:
                     self.coalMarketRemaining -= X
                     return
                 else:
-                    _available.resourceAmount -= 1
+                    _available.decreaseResourceAmount(1)
                     if _available.resourceAmount == 0:
                         _available = availableCoal.pop(0)
                 X -= 1
@@ -213,7 +200,7 @@ class Board:
                             "Not enough beer in trade post, make sure we check there is enough before calling board.buildBuilding"
                         )
                 else:
-                    _available.resourceAmount -= 1
+                    _available.decreaseResourceAmount(1)
                     if _available.resourceAmount == 0:
                         _available = availableBeer.pop(0)
             return
@@ -340,12 +327,8 @@ class Board:
         # check for connection to tradeposts
         for tradePost in self.tradePosts:
             if self.areNetworked(town, tradePost):
-                # enough money for coal amount?
-                # tyler double check sale price on this
                 cost = self.priceForCoal(coalAmount)
-                if (
-                    money > cost
-                ):
+                if money > cost:
                     return True
         return False
 
@@ -377,9 +360,7 @@ class Board:
     """
 
     def isIronAvailableFromTradePosts(self, ironAmount: int, money: int) -> bool:
-        return (
-            money > self.priceForIron(ironAmount)
-        )
+        return money > self.priceForIron(ironAmount)
 
     """
     getAvailableCoalAmount
@@ -414,7 +395,7 @@ class Board:
                 amount += beerBuilding.resourceAmount
         for tradePost in self.tradePosts:
             if self.areNetworked(town, tradePost):
-                amount += self.beerAmount
+                amount += tradePost.beerAmount
                 break
         return amount
 
@@ -515,9 +496,25 @@ class Board:
     :param building: building to sell
     """
 
-    def sellBuilding(
-        self, building: Building, buildLocation: BuildLocation, player: Player
-    ):
-        self.removeXBeer(building.sell, [building.town], player)
-        building.sell(buildLocation)
-        buildLocation.sellBuilding()
+    def sellBuilding(self, building: MarketBuilding, player: Player):
+        self.removeXBeer(building.beerCost, [building.town], player)
+        building.sell()
+
+    def getVictoryPoints(self) -> Dict[str, int]:
+        points = {player.id: player.victoryPoints for player in self.players}
+
+        for building in self.getAllBuildings():
+            if building.isFlipped:
+                points[building.owner.id] += building.victoryPointsGained
+
+        for town in self.towns:
+            for network in town.networks:
+                if network.road and network.isBuilt:
+                    points[network.road.owner.id] += town.getNetworkVictoryPoints()
+
+        for tradePost in self.tradePosts:
+            for network in tradePost.networks:
+                if network.road and network.isBuilt:
+                    points[network.road.owner.id] += tradePost.networkPoints
+
+        return points

@@ -37,7 +37,7 @@ class TradePost:
         self.moneyGained = moneyGained
         self.victoryPointsGained = victoryPointsGained
         self.incomeGained = incomeGained
-        self.possibleTrades = [] # list of
+        self.possibleTrades = []  # list of
         self.networkPoints = networkPoints
         self.canDevelop = canDevelop
         self.networks: List[RoadLocation] = []
@@ -66,3 +66,6 @@ class TradePost:
 
     def __str__(self) -> str:
         return f"TP({prLightPurple(self.name)})"
+
+    def __repr__(self) -> str:
+        return str(self)
