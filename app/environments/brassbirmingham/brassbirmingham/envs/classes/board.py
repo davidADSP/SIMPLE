@@ -128,7 +128,7 @@ class Board:
         self, town1: Town | Building | TradePost, town2: Town | Building | TradePost
     ) -> bool:
         q = [town1]
-        v = [town1.id]
+        v = set(town1.id)
 
         while q:
             town = q.pop(0)  # bfs
@@ -138,7 +138,7 @@ class Board:
                     for _town in roadLocation.towns:
                         if _town.id not in v:
                             q.append(_town)
-                            v.append(_town.id)
+                            v.add(_town.id)
                             if _town.id == town2.id:
                                 return True
         return False
