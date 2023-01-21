@@ -4,7 +4,8 @@ from typing import TYPE_CHECKING, List
 
 import consts
 from python.id import id
-from python.print_colors import prCyan, prGreen, prLightGray, prPurple, prRed, prYellow
+from python.print_colors import (prCyan, prGreen, prLightGray, prPurple, prRed,
+                                 prYellow)
 
 if TYPE_CHECKING:
     from .board import Board

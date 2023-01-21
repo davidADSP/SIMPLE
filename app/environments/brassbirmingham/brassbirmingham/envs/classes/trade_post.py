@@ -66,3 +66,6 @@ class TradePost:
 
     def __str__(self) -> str:
         return f"TP({prLightPurple(self.name)})"
+
+    def __repr__(self) -> str:
+        return str(self)
