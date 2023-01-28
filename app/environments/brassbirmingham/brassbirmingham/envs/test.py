@@ -2,6 +2,8 @@ import unittest
 from unittest.mock import MagicMock, Mock
 
 from classes.board import Board
+from classes.deck import Deck
+from classes.enums import Era
 from classes.player import Player
 from consts import *
 
@@ -9,9 +11,10 @@ from consts import *
 class Test(unittest.TestCase):
     def resetGame(self, numPlayers):
         self.board = Board(numPlayers)
-        self.p1 = Player("Noah", self.board)
 
+        self.p1 = Player("Noah", self.board)
         self.p2 = Player("Tyler", self.board)
+
         if numPlayers > 2:
             self.p3 = Player("Sam", self.board)
         if numPlayers > 3:
@@ -23,15 +26,21 @@ class Test(unittest.TestCase):
     # test decks, hand, cards
     def testStartingValues(self):
         self.assertEqual(
-            len(self.board.deck.cards), 40, "Should be 40 cards in a 2 player game"
+            len(self.board.deck.cards),
+            40 - 2 * STARTING_HAND_SIZE,
+            "Should be 24 cards in a 2 player game",
         )
         self.resetGame(3)
         self.assertEqual(
-            len(self.board.deck.cards), 54, "Should be 54 cards in a 3 player game"
+            len(self.board.deck.cards),
+            54 - 3 * STARTING_HAND_SIZE,
+            "Should be 30 cards in a 3 player game",
         )
         self.resetGame(4)
         self.assertEqual(
-            len(self.board.deck.cards), 64, "Should be 64 cards in a 4 player game"
+            len(self.board.deck.cards),
+            64 - 4 * STARTING_HAND_SIZE,
+            "Should be 32 cards in a 4 player game",
         )
         self.assertEqual(
             self.board.coalMarketRemaining, 13, "Should be 13 coal on the market"
@@ -168,11 +177,11 @@ class Test(unittest.TestCase):
         # Zero points
         playerVPs = self.board.getVictoryPoints()
 
-        self.assertTrue(self.p1.id in playerVPs)
-        self.assertTrue(self.p2.id in playerVPs)
+        self.assertTrue(self.p1 in playerVPs)
+        self.assertTrue(self.p2 in playerVPs)
 
-        self.assertEqual(playerVPs[self.p1.id], 0)
-        self.assertEqual(playerVPs[self.p2.id], 0)
+        self.assertEqual(playerVPs[self.p1], 0)
+        self.assertEqual(playerVPs[self.p2], 0)
 
         # # Buildings Only
         redditch = self.board.townDict["Redditch"]
@@ -205,8 +214,8 @@ class Test(unittest.TestCase):
 
         playerVPs = self.board.getVictoryPoints()
 
-        self.assertEqual(playerVPs[self.p1.id], 5)
-        self.assertEqual(playerVPs[self.p2.id], 6)
+        self.assertEqual(playerVPs[self.p1], 5)
+        self.assertEqual(playerVPs[self.p2], 6)
 
         # # With networks
         self.p1.canBuildCanal = Mock(return_value=True)
@@ -225,8 +234,8 @@ class Test(unittest.TestCase):
 
         playerVPs = self.board.getVictoryPoints()
 
-        self.assertEqual(playerVPs[self.p1.id], 12)
-        self.assertEqual(playerVPs[self.p2.id], 7)
+        self.assertEqual(playerVPs[self.p1], 12)
+        self.assertEqual(playerVPs[self.p2], 7)
 
         # With initial VPs
 
@@ -235,8 +244,8 @@ class Test(unittest.TestCase):
 
         playerVPs = self.board.getVictoryPoints()
 
-        self.assertEqual(playerVPs[self.p1.id], 14)
-        self.assertEqual(playerVPs[self.p2.id], 14)
+        self.assertEqual(playerVPs[self.p1], 14)
+        self.assertEqual(playerVPs[self.p2], 14)
 
     def testIncomeLevel(self):
         self.p1.income = 10
@@ -277,6 +286,28 @@ class Test(unittest.TestCase):
         self.p1.income = 98
         self.p1.decreaseIncomeLevel(3)
         self.assertEqual(self.p1.income, 85)
+
+    def testEndCanalEra(self):
+        self.board.deck = Deck([])
+        for player in self.board.players:
+            player.hand.cards = []
+
+        self.board.endCanalEra()
+        for player in self.board.players:
+            self.assertEqual(player.roadCount, 14)
+            self.assertEqual(len(player.hand.cards), 8)
+
+        for town in self.board.towns:
+            for network in town.networks:
+                self.assertEqual(network.isBuilt, False)
+            for buildLocation in town.buildLocations:
+                if buildLocation.building and buildLocation.building.tier <= 1:
+                    self.assertEqual(buildLocation.building.isRetired, True)
+
+        for tradepost in self.board.tradePosts:
+            self.assertEqual(tradepost.beerAmount, tradepost.startingBeerAmount)
+
+        self.assertEqual(self.board.era, Era.railroad)
 
 
 if __name__ == "__main__":

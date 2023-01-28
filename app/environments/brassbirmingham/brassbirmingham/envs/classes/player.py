@@ -14,11 +14,10 @@ from classes.cards.enums import CardName, CardType
 from classes.cards.industry_card import IndustryCard
 from classes.cards.location_card import LocationCard
 from classes.hand import Hand
-from classes.roads.canal import Canal
 from consts import (BUILDINGS, CANAL_PRICE, ONE_RAILROAD_COAL_PRICE,
-                    ONE_RAILROAD_PRICE, STARTING_MONEY, STARTING_ROADS,
-                    TWO_RAILROAD_BEER_PRICE, TWO_RAILROAD_COAL_PRICE,
-                    TWO_RAILROAD_PRICE)
+                    ONE_RAILROAD_PRICE, STARTING_MONEY,
+                    STARTING_ROADS, TWO_RAILROAD_BEER_PRICE,
+                    TWO_RAILROAD_COAL_PRICE, TWO_RAILROAD_PRICE)
 from python.id import id
 
 from .build_location import BuildLocation
@@ -43,9 +42,7 @@ class Player:
         for building in self.buildings:
             building.addOwner(self)
 
-        self.roads = [
-            Canal(self) for x in range(STARTING_ROADS)
-        ]  # canals/railroads, array of Road objects
+        self.roadCount = STARTING_ROADS
         self.board.addPlayer(self)
 
     def incomeLevel(self):
@@ -189,11 +186,16 @@ class Player:
 
     # 2 NETWORK
     def canBuildCanal(self, roadLocation: RoadLocation) -> bool:
-        return self.canAffordCanal() and self.canPlaceCanal(roadLocation)
+        return (
+            self.roadCount > 0
+            and self.canAffordCanal()
+            and self.canPlaceCanal(roadLocation)
+        )
 
     def canBuildOneRailroad(self, roadLocation: RoadLocation) -> bool:
         return (
-            self.canAffordOneRailroad()
+            self.roadCount > 0
+            and self.canAffordOneRailroad()
             and self.canPlaceOneRailroad(roadLocation)
             and self.canAffordOneRailroadIndustryResources()
         )
@@ -202,7 +204,8 @@ class Player:
         self, roadLocation1: RoadLocation, roadLocation2: RoadLocation
     ) -> bool:
         return (
-            self.canAffordTwoRailroads()
+            self.roadCount > 1
+            and self.canAffordTwoRailroads()
             and self.canAffordTwoRailroadIndustryResources(roadLocation1, roadLocation2)
             and self.canPlaceTwoRailroads(roadLocation1, roadLocation2)
         )
