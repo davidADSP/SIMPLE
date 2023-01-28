@@ -153,7 +153,7 @@ class Board:
     def removeXCoal(self, X: int, towns: List[Town], player: Player):
         for town in towns:
             availableCoal = self.getAvailableCoalBuildingsTradePosts(town)
-            if availableCoal == 0:
+            if len(availableCoal) == 0:
                 continue
 
             _available = availableCoal.pop(
@@ -174,6 +174,33 @@ class Board:
             return
 
     """
+    removeXIron
+    
+    :param X: amount of iron to remove
+    :param player: player to remove money from (if necessary)"""
+
+    def removeXIron(self, X: int, player: Player):
+        availableIron = self.getAvailableIronBuildingsTradePosts()
+        if len(availableIron) == 0:
+            return
+
+        _available = availableIron.pop(
+            0
+        )
+        while X > 0:
+            if _available.type == "TradePost":
+                cost = self.priceForIron(X)
+                player.money -= cost
+                self.ironMarketRemaining -= X
+                return
+            else:
+                _available.decreaseResourceAmount(1)
+                if _available.resourceAmount == 0:
+                    _available = availableIron.pop(0)
+            X -= 1
+        return
+
+    """
     removeXBeer
     
     :param X: amount of beer to remove
@@ -183,7 +210,7 @@ class Board:
     def removeXBeer(self, X: int, towns: List[Town], player: Player):
         for town in towns:
             availableBeer = self.getAvailableBeerBuildingsTradePosts(player, town)
-            if availableBeer == 0:
+            if len(availableBeer) == 0:
                 continue
 
             _available = availableBeer.pop(
@@ -260,8 +287,6 @@ class Board:
     isCoalAvailableFromBuildings
     
     :param town: town where coal is required
-    :param coalAmount: amount of coal required
-    :param money: amount of money available to spend, if necessary
     :return: is there coal available from networked buildings
     """
 
@@ -275,6 +300,19 @@ class Board:
             if self.areNetworked(town, coalBuilding):
                 return True
         return False
+
+    """
+    isIronAvailableFromBuildings
+    
+    :return: is there iron available from networked buildings
+    """
+
+    def isIronAvailableFromBuildings(self) -> bool:
+        # areNetworked puts priority on closest buildings to pick from
+        # todo add priority for own buildings (?)
+
+        # check for towns with iron available
+        return len(self.getIronBuildings()) > 0
 
     """
     isBeerAvailableFromBuildings
@@ -293,23 +331,6 @@ class Board:
         for beerBuilding in beerBuildings:
             if beerBuilding.owner == player or self.areNetworked(town, beerBuilding):
                 return True
-        return False
-
-    """
-    isIronAvailableFromBuildings
-    
-    :return: is there iron available from buildings
-    """
-
-    def isIronAvailableFromBuildings(self) -> bool:
-        # areNetworked puts priority on closest buildings to pick from
-        # todo add priority for own buildings (?)
-
-        # check for towns with iron available
-        ironBuildings = self.getIronBuildings()
-        if len(ironBuildings) > 0:
-            # todo non player-owned need network
-            return True
         return False
 
     """
@@ -400,6 +421,13 @@ class Board:
         return amount
 
     """
+    isIronAvailable
+    
+    """
+    def isIronAvailable(self):
+        return True
+
+    """
     getAvailableCoalBuildingsTradePosts
     
     :param town: town where coal is required
@@ -417,6 +445,22 @@ class Board:
             if self.areNetworked(town, tradePost):
                 if self.coalMarketRemaining > 0:
                     l.append(tradePost)
+        return l
+
+    """
+    getAvailableIronBuildingsTradePosts
+    :return: buildings/tradeposts with iron"""
+
+    def getAvailableIronBuildingsTradePosts(
+        self
+    ) -> List[IndustryBuilding | TradePost]:
+        ironBuildings = self.getIronBuildings()
+        l = []
+        for ironBuilding in ironBuildings:
+            l.append(ironBuilding)
+        for tradePost in self.tradePosts:
+            if self.ironMarketRemaining > 0:
+                l.append(tradePost)
         return l
 
     """
@@ -440,13 +484,6 @@ class Board:
                     l.append(tradePost)
         return l
 
-    """
-    isIronAvailable
-    
-    :param ironAmount: amount of iron required
-    :param money: amount of money available to spend, if necessary
-    """
-    # def isIronAvailable(self, town, ironAmount, money): todo
 
     """
     buildBuilding
@@ -460,9 +497,9 @@ class Board:
     def buildBuilding(
         self, building: Building, buildLocation: BuildLocation, player: Player
     ):
-        self.removeXCoal(building.coalCost, [building.town], player)
         player.money -= building.cost
-        # todo take iron away from resources
+        self.removeXCoal(building.coalCost, [building.town], player)
+        self.removeXIron(building.ironCost, player)
 
         # build building - link building and buildLocation to each other
         buildLocation.addBuilding(building)

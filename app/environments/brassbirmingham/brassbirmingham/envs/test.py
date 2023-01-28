@@ -213,9 +213,9 @@ class Test(unittest.TestCase):
         self.p1.buildCanal(
             redditch.networks[1]
         )  # 4 = 2 (tradepost oxford) + 2 (goods @ redditch)
-        print(redditch.networks[1])
+        # print(redditch.networks[1])
 
-        print(birmingham.networks[0])
+        # print(birmingham.networks[0])
         self.p1.buildCanal(
             birmingham.networks[4]
         )  # 3 = 2 (tradepost oxford) + 1 (cotton @ birmingham)

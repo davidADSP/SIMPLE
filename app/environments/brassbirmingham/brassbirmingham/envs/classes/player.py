@@ -92,21 +92,24 @@ class Player:
         for _ in range(levels):
             decreaseLevel()
 
+    # pass "money" object
     def canAffordBuildingIndustryResources(
-        self, buildLocation: BuildLocation, coalCost: int, ironCost: int
+        self, buildLocation: BuildLocation, coalCost: int, ironCost: int, money: int
     ) -> bool:
-        return (
+        #first check if that amount is available
+        return ((
             self.board.isCoalAvailableFromBuildings(buildLocation.town)
             or self.board.isCoalAvailableFromTradePosts(
-                buildLocation.town, coalCost, self.money
+                buildLocation.town, coalCost, money
             )
         ) and (
             self.board.isIronAvailableFromBuildings()
-            or self.board.isIronAvailableFromTradePosts(ironCost, self.money)
-        )
+            or self.board.isIronAvailableFromTradePosts(ironCost, money)
+        # if not, check if player can afford
+        )) or (self.board.priceForCoal(coalCost) + self.board.priceForIron(ironCost) <= money)
 
-    def canAffordBuilding(self, building: Building) -> bool:
-        return self.money >= building.cost
+    def canAffordBuilding(self, building: Building, money:int) -> bool:
+        return money >= building.cost
 
     def canPlaceBuilding(
         self, building: Building, buildLocation: BuildLocation
@@ -122,8 +125,8 @@ class Player:
             + self.board.priceForIron(ironCost)
         )
 
-    def canAffordCanal(self) -> bool:
-        return self.money >= CANAL_PRICE
+    def canAffordCanal(self, money:int) -> bool:
+        return money >= CANAL_PRICE
 
     def canPlaceCanal(self, roadLocation: RoadLocation) -> bool:
         return not roadLocation.isBuilt and roadLocation.canBuildCanal
@@ -132,8 +135,8 @@ class Player:
         return self.board.getAvailableCoalAmount() >= ONE_RAILROAD_COAL_PRICE
         # return self.board.isCoalAvailableFromBuildings(roadLocation.town) or self.board.isCoalAvailableFromTradePosts(roadLocation.town, ONE_RAILROAD_COAL_PRICE, self.money)
 
-    def canAffordOneRailroad(self) -> bool:
-        return self.money >= ONE_RAILROAD_PRICE
+    def canAffordOneRailroad(self, money:int) -> bool:
+        return money >= ONE_RAILROAD_PRICE
 
     def canPlaceOneRailroad(self, roadLocation: RoadLocation) -> bool:
         return not roadLocation.isBuilt and roadLocation.canBuildRailroad
@@ -156,8 +159,8 @@ class Player:
         #         or\
         #         (self.board.isCoalAvailableFromBuildings(roadLocation2.town) or self.board.isCoalAvailableFromTradePosts(roadLocation2.town, TWO_RAILROAD_COAL_PRICE, self.money)) and (self.board.isBeerAvailableFromBuildings(roadLocation2.town) or self.board.isBeerAvailableFromTradePosts(roadLocation1.town))
 
-    def canAffordTwoRailroads(self) -> bool:
-        return self.money >= TWO_RAILROAD_PRICE
+    def canAffordTwoRailroads(self, money) -> bool:
+        return money >= TWO_RAILROAD_PRICE
 
     def canPlaceTwoRailroads(
         self, roadLocation1: RoadLocation, roadLocation2: RoadLocation
@@ -180,20 +183,20 @@ class Player:
     ) -> bool:
         return (
             self.canAffordBuildingIndustryResources(
-                buildLocation, building.coalCost, building.ironCost
+                buildLocation, building.coalCost, building.ironCost, self.money-building.cost
             )
-            and self.canAffordBuilding(building)
+            and self.canAffordBuilding(building, self.money)
             and self.canPlaceBuilding(building, buildLocation)
             and building.owner == self
         )
 
     # 2 NETWORK
     def canBuildCanal(self, roadLocation: RoadLocation) -> bool:
-        return self.canAffordCanal() and self.canPlaceCanal(roadLocation)
+        return self.canAffordCanal(self.money) and self.canPlaceCanal(roadLocation)
 
     def canBuildOneRailroad(self, roadLocation: RoadLocation) -> bool:
         return (
-            self.canAffordOneRailroad()
+            self.canAffordOneRailroad(self.money)
             and self.canPlaceOneRailroad(roadLocation)
             and self.canAffordOneRailroadIndustryResources()
         )
@@ -202,7 +205,7 @@ class Player:
         self, roadLocation1: RoadLocation, roadLocation2: RoadLocation
     ) -> bool:
         return (
-            self.canAffordTwoRailroads()
+            self.canAffordTwoRailroads(self.money)
             and self.canAffordTwoRailroadIndustryResources(roadLocation1, roadLocation2)
             and self.canPlaceTwoRailroads(roadLocation1, roadLocation2)
         )
