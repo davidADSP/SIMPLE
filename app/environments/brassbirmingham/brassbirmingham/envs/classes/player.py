@@ -10,7 +10,8 @@ import math
 
 from classes.buildings.enums import BuildingType
 from classes.cards.card import Card
-from classes.cards.enums import CardName, CardType
+from classes.cards.enums import CardName
+from classes.enums import Era
 from classes.cards.industry_card import IndustryCard
 from classes.cards.location_card import LocationCard
 from classes.hand import Hand
@@ -108,6 +109,11 @@ class Player:
     def canPlaceBuilding(
         self, building: Building, buildLocation: BuildLocation
     ) -> bool:
+        if building.onlyPhaseOne and self.board.era != Era.canal:
+            return False
+        if building.onlyPhaseTwo and self.board.era != Era.railroad:
+            return False
+
         return buildLocation.isPossibleBuild(building)
 
     def totalBuildingCost(
@@ -123,7 +129,7 @@ class Player:
         return self.money >= CANAL_PRICE
 
     def canPlaceCanal(self, roadLocation: RoadLocation) -> bool:
-        return not roadLocation.isBuilt and roadLocation.canBuildCanal
+        return self.board.era == Era.canal and not roadLocation.isBuilt and roadLocation.canBuildCanal
 
     def canAffordOneRailroadIndustryResources(self) -> bool:
         return self.board.getAvailableCoalAmount() >= ONE_RAILROAD_COAL_PRICE
@@ -133,7 +139,7 @@ class Player:
         return self.money >= ONE_RAILROAD_PRICE
 
     def canPlaceOneRailroad(self, roadLocation: RoadLocation) -> bool:
-        return not roadLocation.isBuilt and roadLocation.canBuildRailroad
+        return self.board.era == Era.railroad and not roadLocation.isBuilt and roadLocation.canBuildRailroad
 
     def canAffordTwoRailroadIndustryResources(
         self, roadLocation1: RoadLocation, roadLocation2: RoadLocation
@@ -175,6 +181,14 @@ class Player:
     def canBuildBuilding(
         self, building: Building, buildLocation: BuildLocation
     ) -> bool:
+
+        if self.board.era == Era.canal:
+            # You may have a maximum of 1 Industry tile per location in Canal era
+            for buildLocation_ in buildLocation.town.buildLocations:
+                if buildLocation_.id != buildLocation.id:
+                    if buildLocation_.building and buildLocation_.building.owner.id == self.id:
+                        return False
+
         return (
             self.canAffordBuildingIndustryResources(
                 buildLocation, building.coalCost, building.ironCost
