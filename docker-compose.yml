@@ -5,14 +5,10 @@ services:
         build:
             context: ./
             dockerfile: app/Dockerfile
-        ports:
-            - 8899:8899
-            - 6006:6006
+        network_mode: "host"
         volumes:
             - ./app/:/app/
         tty: true
         container_name: selfplay
         cap_add:
             - SYS_PTRACE
-        
-

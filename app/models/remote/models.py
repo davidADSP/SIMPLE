@@ -11,8 +11,8 @@ from stable_baselines.common.distributions import CategoricalProbabilityDistribu
 
 # These will need to change based on the remote agent being trained
 
-ACTIONS = 9
-FEATURE_SIZE = 9
+ACTIONS = 121
+FEATURE_SIZE = 1160
 
 # Optionally configurable
 

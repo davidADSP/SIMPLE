@@ -6,7 +6,7 @@ import requests
 from stable_baselines import logger
 
 
-BASE_URL = 'http://localhost:5000'
+BASE_URL = 'http://localhost:8765'
 
 
 class RemoteEnv(gym.Env):
@@ -33,7 +33,7 @@ class RemoteEnv(gym.Env):
     def step(self, action):
         response = self.remote_call('step', data={"action": int(action)})
         self.current_player_num = response['next_player']
-        self.current_observation = np.array(response['observation'])
+        self.current_observation = self.get_observation_from_payload(response)
         self.current_legal_actions = np.array(response['legal_actions'])
         return self.observation, response['reward'], response['done'], {}
 
@@ -60,8 +60,15 @@ class RemoteEnv(gym.Env):
         self.observation_space_size = response['observation_space_size']
         self.n_players = response['player_count']
         self.current_player_num = response['current_player']
-        self.current_observation = np.array(response['observation'])
+        self.current_observation = self.get_observation_from_payload(response)
         self.current_legal_actions= np.array(response['legal_actions'])
+
+    def get_observation_from_payload(self, response):
+        o = response['observation']
+        if len(o) != self.observation_space_size + self.action_space_size:
+            o += response['legal_actions']
+        assert len(o) == self.observation_space_size + self.action_space_size, 'Observation length must be the same as observation_space_size + action_space_size'
+        return np.array(o)
 
     def rules_move(self):
         raise Exception('Rules based agent is not yet implemented for Sushi Go!')
