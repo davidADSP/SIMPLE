@@ -16,9 +16,9 @@ FEATURE_SIZE = 1160
 
 # Optionally configurable
 
-DEPTH = 5
+DEPTH = 6
 VALUE_DEPTH = 1
-POLICY_DEPTH = 1
+POLICY_DEPTH = 3
 
 class CustomPolicy(ActorCriticPolicy):
     def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=False, **kwargs):
@@ -84,9 +84,6 @@ def resnet_extractor(y, **kwargs):
     return y
 
 
-
-
-
 def residual(y, filters):
     shortcut = y
 
@@ -115,5 +112,3 @@ def dense(y, filters, batch_norm = False, activation = 'relu', name = None):
         y = Activation(activation, name = name)(y)
 
     return y
-
-

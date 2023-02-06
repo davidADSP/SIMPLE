@@ -1,9 +1,10 @@
-
+import sys
 from random import choice
 
 import gym
 import numpy as np
 import requests
+import tensorflow as tf
 
 from stable_baselines import logger
 
@@ -11,17 +12,37 @@ from stable_baselines import logger
 BASE_URL = 'http://localhost:8765'
 
 
+def get_move_from_nn(interpreter, input_data):
+    input_details = interpreter.get_input_details()
+    output_details = interpreter.get_output_details()
+
+    input_data = np.array([input_data], dtype=np.float32)
+    interpreter.set_tensor(input_details[0]['index'], input_data)
+
+    interpreter.invoke()
+
+    output_data = interpreter.get_tensor(output_details[2]['index'])
+    output_by_move = [(score, move) for move, score in enumerate(output_data[0])]
+    output_by_move.sort()
+    return output_by_move[-1][1]
+
+
 class RemoteGame:
     def __init__(self):
         self.newgame()
+        self.interpreter = tf.lite.Interpreter(model_path="best_model.tflite")
+        self.interpreter.allocate_tensors()
 
     def play(self):
         done = False
         while done is False:
             moves = self.possible_moves()
-            random_move = choice(moves)
-            _, reward, done, _ = self.step(random_move)
-        print(f'>>> {reward}')
+            move = choice(moves)
+            if self.current_player_num == 0:
+                # use NN
+                move = get_move_from_nn(self.interpreter, self.observation)
+            _, reward, done, _ = self.step(move)
+        return reward.index(1)
 
     def possible_moves(self):
         return [i for i, x in enumerate(self.legal_actions) if x == 1]
@@ -75,9 +96,14 @@ class RemoteGame:
         return np.array(o)
 
     def rules_move(self):
-        raise Exception('Rules based agent is not yet implemented for Sushi Go!')
+        raise Exception('Rules based agent is not yet implemented!')
 
 
 if __name__ == "__main__":
-    game = RemoteGame()
-    game.play()
+    winners = {0: 0, 1: 0}
+    for _ in range(1000):
+        game = RemoteGame()
+        winner = game.play()
+        winners[winner] += 1
+        print(winners)
+    print(f'Final winners: {winners}')

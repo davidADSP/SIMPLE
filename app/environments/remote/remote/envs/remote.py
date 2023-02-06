@@ -31,11 +31,26 @@ class RemoteEnv(gym.Env):
         return self.current_legal_actions
 
     def step(self, action):
-        response = self.remote_call('step', data={"action": int(action)})
+        try:
+            response = self.remote_call('step', data={"action": int(action)})
+        except:
+            print(f'>>> Non-200 response! Potentially invalid move.\n'
+                  f'observation: {self.observation}\n'
+                  f'legal_actions: {self.legal_actions}\n'
+                  f'action: {action}\n')
+            raise
         self.current_player_num = response['next_player']
         self.current_observation = self.get_observation_from_payload(response)
         self.current_legal_actions = np.array(response['legal_actions'])
-        return self.observation, response['reward'], response['done'], {}
+        reward = response['reward']
+        if response['done']:
+            reward = []
+            for x in response['reward']:
+                if x == 0:
+                    reward.append(-1)
+                else:
+                    reward.append(x)
+        return self.observation, reward, response['done'], {}
 
     def reset(self):
         self.newgame()
