@@ -8,30 +8,28 @@ import tensorflow.keras.backend as K
 from stable_baselines.common.policies import ActorCriticPolicy
 from stable_baselines.common.distributions import CategoricalProbabilityDistribution
 
-
-# These will need to change based on the remote agent being trained
-
-ACTIONS = 121
-FEATURE_SIZE = 1160
-
 # Optionally configurable
 
-DEPTH = 6
+DEPTH = 5
 VALUE_DEPTH = 1
-POLICY_DEPTH = 3
+POLICY_DEPTH = 1
+
 
 class CustomPolicy(ActorCriticPolicy):
     def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=False, **kwargs):
         super(CustomPolicy, self).__init__(sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=reuse, scale=True)
 
+        ACTIONS = ac_space.n
+        FEATURE_SIZE = ob_space.shape[0] - ACTIONS
+
         with tf.variable_scope("model", reuse=reuse):
 
             obs, legal_actions = split_input(self.processed_obs, ACTIONS)
 
-            extracted_features = resnet_extractor(obs, **kwargs)
+            extracted_features = resnet_extractor(obs, FEATURE_SIZE, **kwargs)
 
-            self._policy = policy_head(extracted_features, legal_actions)
-            self._value_fn, self.q_value = value_head(extracted_features)
+            self._policy = policy_head(extracted_features, legal_actions, FEATURE_SIZE, ACTIONS)
+            self._value_fn, self.q_value = value_head(extracted_features, FEATURE_SIZE, ACTIONS)
             self._proba_distribution  = CategoricalProbabilityDistribution(self._policy)
 
         self._setup_init()
@@ -56,7 +54,7 @@ def split_input(obs, split):
     return   obs[:,:-split], obs[:,-split:]
 
 
-def value_head(y):
+def value_head(y, FEATURE_SIZE, ACTIONS):
     for _ in range(VALUE_DEPTH):
         y = dense(y, FEATURE_SIZE)
     vf = dense(y, 1, batch_norm = False, activation = 'tanh', name='vf')
@@ -64,7 +62,7 @@ def value_head(y):
     return vf, q
 
 
-def policy_head(y, legal_actions):
+def policy_head(y, legal_actions, FEATURE_SIZE, ACTIONS):
 
     for _ in range(POLICY_DEPTH):
         y = dense(y, FEATURE_SIZE)
@@ -76,7 +74,7 @@ def policy_head(y, legal_actions):
     return policy
 
 
-def resnet_extractor(y, **kwargs):
+def resnet_extractor(y, FEATURE_SIZE, **kwargs):
     y = dense(y, FEATURE_SIZE)
     for _ in range(DEPTH):
         y = residual(y, FEATURE_SIZE)
