@@ -1,4 +1,5 @@
 import sys
+from collections import defaultdict
 from random import choice
 
 import gym
@@ -9,7 +10,7 @@ import tensorflow as tf
 from stable_baselines import logger
 
 
-BASE_URL = 'http://localhost:8765'
+BASE_URL = 'http://localhost:5000'
 
 
 def get_move_from_nn(interpreter, input_data):
@@ -42,7 +43,11 @@ class RemoteGame:
                 # use NN
                 move = get_move_from_nn(self.interpreter, self.observation)
             _, reward, done, _ = self.step(move)
-        return reward.index(1)
+        try:
+            return reward.index(1)
+        except ValueError:
+            # no winner
+            return -1
 
     def possible_moves(self):
         return [i for i, x in enumerate(self.legal_actions) if x == 1]
@@ -73,10 +78,17 @@ class RemoteGame:
 
     def remote_call(self, endpoint, data=None):
         url = f'{BASE_URL}/{endpoint}/{self.remote_id}'
-        if data is None:
-            return requests.get(url).json()
-        else:
-            return requests.post(url, json=data).json()
+        response = None
+        try:
+            if data is None:
+                response = requests.get(url)
+                return response.json()
+            else:
+                response = requests.post(url, json=data)
+                return response.json()
+        except:
+            print(f'>>> Invalid response: {response.content}')
+            raise
 
     def newgame(self):
         response = requests.get(f'{BASE_URL}/newgame').json()
@@ -100,7 +112,7 @@ class RemoteGame:
 
 
 if __name__ == "__main__":
-    winners = {0: 0, 1: 0}
+    winners = defaultdict(lambda: 0)
     for _ in range(1000):
         game = RemoteGame()
         winner = game.play()

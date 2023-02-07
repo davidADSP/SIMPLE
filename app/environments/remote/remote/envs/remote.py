@@ -6,7 +6,7 @@ import requests
 from stable_baselines import logger
 
 
-BASE_URL = 'http://localhost:8765'
+BASE_URL = 'http://localhost:5000'
 
 
 class RemoteEnv(gym.Env):
