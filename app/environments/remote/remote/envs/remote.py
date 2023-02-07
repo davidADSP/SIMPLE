@@ -1,4 +1,5 @@
 
+import os
 import gym
 import numpy as np
 import requests
@@ -6,7 +7,7 @@ import requests
 from stable_baselines import logger
 
 
-BASE_URL = 'http://localhost:5000'
+BASE_URL = os.getenv('BASE_URL', 'http://localhost:5000')
 
 
 class RemoteEnv(gym.Env):

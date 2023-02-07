@@ -1,8 +1,7 @@
-import sys
+import os
 from collections import defaultdict
 from random import choice
 
-import gym
 import numpy as np
 import requests
 import tensorflow as tf
@@ -10,7 +9,7 @@ import tensorflow as tf
 from stable_baselines import logger
 
 
-BASE_URL = 'http://localhost:5000'
+BASE_URL = os.getenv('BASE_URL', 'http://localhost:5000')
 
 
 def get_move_from_nn(interpreter, input_data):
