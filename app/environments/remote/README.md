@@ -34,20 +34,20 @@ The `/step/{id}` accepts POST data with `{"action": integer of action selected}`
 }
 ```
 
-By default the server should run on http://localhost:8765
+By default the server should run on http://localhost:5000. The base URL can be changed by setting the `-rbu` parameter.
 
 ## Training the agent
 
 To start training:
 
 ```bash
-docker-compose exec app python3 train.py -r -e remote
+docker-compose exec app python3 train.py -r -e remote -rbu http://localhost:8765
 ```
 
 To resume training:
 
 ```bash
-docker-compose exec app python3 train.py -e remote
+docker-compose exec app python3 train.py -e remote -rbu http://localhost:8765
 ```
 
 ## Exporting tflite model
@@ -61,7 +61,7 @@ Saves `best_model.tflite` in the current directory.
 ## Testing the agent
 
 ```bash
-scripts/random_play_remote.sh
+scripts/random_play_remote.sh -rbu http://localhost:8765
 ```
 
 Output example:

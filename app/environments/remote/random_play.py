@@ -1,3 +1,4 @@
+import argparse
 import os
 from collections import defaultdict
 from random import choice
@@ -7,9 +8,6 @@ import requests
 import tensorflow as tf
 
 from stable_baselines import logger
-
-
-BASE_URL = os.getenv('BASE_URL', 'http://localhost:8765')
 
 
 def get_move_from_nn(interpreter, input_data):
@@ -28,7 +26,8 @@ def get_move_from_nn(interpreter, input_data):
 
 
 class RemoteGame:
-    def __init__(self):
+    def __init__(self, base_url):
+        self.base_url = base_url
         self.newgame()
         self.interpreter = tf.lite.Interpreter(model_path="best_model.tflite")
         self.interpreter.allocate_tensors()
@@ -76,7 +75,7 @@ class RemoteGame:
         pass
 
     def remote_call(self, endpoint, data=None):
-        url = f'{BASE_URL}/{endpoint}/{self.remote_id}'
+        url = f'{self.base_url}/{endpoint}/{self.remote_id}'
         response = None
         try:
             if data is None:
@@ -90,7 +89,7 @@ class RemoteGame:
             raise
 
     def newgame(self):
-        response = requests.get(f'{BASE_URL}/newgame').json()
+        response = requests.get(f'{self.base_url}/newgame').json()
         self.remote_id = response['id']
         self.action_space_size = response['action_space_size']
         self.observation_space_size = response['observation_space_size']
@@ -111,9 +110,16 @@ class RemoteGame:
 
 
 if __name__ == "__main__":
+    formatter_class = argparse.ArgumentDefaultsHelpFormatter
+    parser = argparse.ArgumentParser(formatter_class=formatter_class)
+
+    parser.add_argument("--remote_base_url", "-rbu", type=str, default='http://localhost:5000'
+            , help="Remote agent URL (see app/environments/remote/README.md)")
+
+    args = parser.parse_args()
     winners = defaultdict(lambda: 0)
     for _ in range(10000):
-        game = RemoteGame()
+        game = RemoteGame(args.remote_base_url)
         winner = game.play()
         winners[winner] += 1
         print(dict(winners))
