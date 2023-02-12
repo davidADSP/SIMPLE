@@ -9,7 +9,7 @@ import tensorflow as tf
 from stable_baselines import logger
 
 
-BASE_URL = os.getenv('BASE_URL', 'http://localhost:5000')
+BASE_URL = os.getenv('BASE_URL', 'http://localhost:8765')
 
 
 def get_move_from_nn(interpreter, input_data):
@@ -112,9 +112,9 @@ class RemoteGame:
 
 if __name__ == "__main__":
     winners = defaultdict(lambda: 0)
-    for _ in range(1000):
+    for _ in range(10000):
         game = RemoteGame()
         winner = game.play()
         winners[winner] += 1
-        print(winners)
-    print(f'Final winners: {winners}')
+        print(dict(winners))
+    print(f'Final winners: {dict(winners)}')
