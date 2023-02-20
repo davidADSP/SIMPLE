@@ -17,6 +17,7 @@ class RemoteEnv(gym.Env):
         super(RemoteEnv, self).__init__()
         self.name = 'remote'
         self.manual = manual
+        self.session = requests.Session()
         self.newgame()
 
         self.action_space = gym.spaces.Discrete(self.action_space_size)
@@ -65,12 +66,12 @@ class RemoteEnv(gym.Env):
     def remote_call(self, endpoint, data=None):
         url = f'{BASE_URL}/{endpoint}/{self.remote_id}'
         if data is None:
-            return requests.get(url).json()
+            return self.session.get(url).json()
         else:
-            return requests.post(url, json=data).json()
+            return self.session.post(url, json=data).json()
 
     def newgame(self):
-        response = requests.get(f'{BASE_URL}/newgame').json()
+        response = self.session.get(f'{BASE_URL}/newgame').json()
         self.remote_id = response['id']
         self.action_space_size = response['action_space_size']
         self.observation_space_size = response['observation_space_size']
