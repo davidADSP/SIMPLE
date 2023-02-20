@@ -1,4 +1,5 @@
 tensorflow==1.15.0
+gym==0.15.7
 stable-baselines[mpi]==2.10.1
 jupyter==1.0.0
 jupyterlab==3.0.0

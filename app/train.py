@@ -33,6 +33,8 @@ def main(args):
 
   model_dir = os.path.join(config.MODELDIR, args.env_name)
 
+  os.environ['REMOTE_BASE_URL'] = args.remote_base_url
+
   if rank == 0:
     try:
       os.makedirs(model_dir)
@@ -175,6 +177,8 @@ def cli() -> None:
             , help="The value of lambda in PPO")
   parser.add_argument("--adam_epsilon", "-a",  type = float, default = 1e-05
             , help="The value of epsilon in the Adam optimiser")
+  parser.add_argument("--remote_base_url", "-rbu",  type = str, default = 'http://localhost:5000'
+            , help="Remote agent URL (see app/environments/remote/README.md)")
 
   # Extract args
   args = parser.parse_args()
