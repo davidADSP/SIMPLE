@@ -5,8 +5,9 @@ from typing import TYPE_CHECKING, Dict, List
 
 from consts import (CANAL_PRICE, MAX_MARKET_COAL, MAX_MARKET_IRON,
                     ONE_RAILROAD_COAL_PRICE, ONE_RAILROAD_PRICE,
-                    ROAD_LOCATIONS, STARTING_CARDS, TOWNS, TRADEPOSTS,
-                    TWO_RAILROAD_COAL_PRICE, TWO_RAILROAD_PRICE)
+                    ROAD_LOCATIONS, STARTING_CARDS, STARTING_HAND_SIZE,
+                    STARTING_ROADS, TOWNS, TRADEPOSTS, TWO_RAILROAD_COAL_PRICE,
+                    TWO_RAILROAD_PRICE)
 from python.id import id
 from python.print_colors import *
 
@@ -17,10 +18,10 @@ from .buildings.industry_building import IndustryBuilding
 from .buildings.market_building import MarketBuilding
 from .deck import Deck
 from .enums import Era
+from .hand import Hand
 from .road_location import RoadLocation
 from .roads.canal import Canal
 from .roads.railroad import Railroad
-from .roads.road import Road
 from .town import Town
 from .trade_post import TradePost
 
@@ -31,8 +32,9 @@ if TYPE_CHECKING:
 class Board:
     def __init__(self, numPlayers: int):
         self.id = id()
+        self.numPlayers = numPlayers
         self.era = Era.canal
-        self.deck = Deck(STARTING_CARDS[str(numPlayers)])
+        self.deck = Deck(copy.deepcopy(STARTING_CARDS[str(numPlayers)]))
         self.towns = copy.deepcopy(TOWNS)  # array of Town objects
         self.townDict = {}
         self.tradePosts = copy.deepcopy(TRADEPOSTS)
@@ -65,6 +67,8 @@ class Board:
 
     def addPlayer(self, player: Player):
         self.players.append(player)
+        for _ in range(STARTING_HAND_SIZE):
+            player.hand.draw()
 
     def getAllBuildings(self) -> List[Building]:
         l = []
@@ -470,10 +474,12 @@ class Board:
 
     def buildCanal(self, roadLocation: RoadLocation, player: Player):
         player.money -= CANAL_PRICE
+        player.roadCount -= 1
         roadLocation.build(Canal(player))
 
     def buildOneRailroad(self, roadLocation: RoadLocation, player: Player):
         player.money -= ONE_RAILROAD_PRICE
+        player.roadCount -= 1
         self.removeXCoal(ONE_RAILROAD_COAL_PRICE, roadLocation.towns, player)
         roadLocation.build(Railroad(player))
 
@@ -481,6 +487,7 @@ class Board:
         self, roadLocation1: RoadLocation, roadLocation2: RoadLocation, player: Player
     ):
         player.money -= TWO_RAILROAD_PRICE
+        player.roadCount -= 2
         self.removeXCoal(
             TWO_RAILROAD_COAL_PRICE,
             [*roadLocation1.towns, *roadLocation2.towns],
@@ -500,21 +507,65 @@ class Board:
         self.removeXBeer(building.beerCost, [building.town], player)
         building.sell()
 
-    def getVictoryPoints(self) -> Dict[str, int]:
-        points = {player.id: player.victoryPoints for player in self.players}
+    def getVictoryPoints(self) -> Dict[Player, int]:
+        points = {player: player.victoryPoints for player in self.players}
 
         for building in self.getAllBuildings():
-            if building.isFlipped:
-                points[building.owner.id] += building.victoryPointsGained
+            if building.isFlipped and not building.isRetired:
+                points[building.owner] += building.victoryPointsGained
 
         for town in self.towns:
             for network in town.networks:
                 if network.road and network.isBuilt:
-                    points[network.road.owner.id] += town.getNetworkVictoryPoints()
+                    points[network.road.owner] += town.getNetworkVictoryPoints()
 
         for tradePost in self.tradePosts:
             for network in tradePost.networks:
                 if network.road and network.isBuilt:
-                    points[network.road.owner.id] += tradePost.networkPoints
+                    points[network.road.owner] += tradePost.networkPoints
 
         return points
+
+    def endRailEra(self):
+        assert len(self.deck.cards) == 0
+        for player in self.players:
+            assert len(player.hand.cards) == 0
+        # Nothing to do
+
+    def endCanalEra(self):
+        assert len(self.deck.cards) == 0
+        for player in self.players:
+            assert len(player.hand.cards) == 0
+
+        # Calculate player points
+        playerPoints = self.getVictoryPoints()
+
+        # Shuffle draw deck
+        self.deck = Deck(copy.deepcopy(STARTING_CARDS[str(self.numPlayers)]))
+        # Set points to each player
+        # Draw new hand
+        for [player, points] in playerPoints.items():
+            player.victoryPoints = points
+            player.roadCount = STARTING_ROADS
+            player.hand = Hand(self.deck)
+            for _ in range(STARTING_HAND_SIZE):
+                player.hand.draw()
+
+        # Remove links
+        for roadLocation in self.roadLocations:
+            roadLocation.road = None
+            roadLocation.isBuilt = False
+        for town in self.towns:
+            for network in town.networks:
+                network.road = None
+                network.isBuilt = False
+            for buildLocation in town.buildLocations:
+                if buildLocation.building and buildLocation.building.tier <= 1:
+                    # Remove obsolete industries
+                    buildLocation.building.isRetired = True
+
+        # Reset merchant beer
+        for tradepost in self.tradePosts:
+            tradepost.beerAmount = tradepost.startingBeerAmount
+
+        self.era = Era.railroad
