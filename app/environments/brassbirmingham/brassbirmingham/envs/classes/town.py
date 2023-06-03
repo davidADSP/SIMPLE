@@ -57,7 +57,7 @@ class Town:
     def getNetworkVictoryPoints(self):
         networkVP = 0
         for buildLocation in self.buildLocations:
-            if buildLocation.building:
+            if buildLocation.building and not buildLocation.building.isRetired:
                 networkVP += buildLocation.building.networkPoints
         return networkVP
 

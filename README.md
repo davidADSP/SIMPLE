@@ -1,8 +1,6 @@
 # Todo
 
  * Finish programming rules of the game
-    * method that ends the canal and resets the game to halfway point
-    * era logic on all canX methods
     * player discard for actions
         * check for card on build
     * allow for multiple selling

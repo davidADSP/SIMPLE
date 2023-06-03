@@ -10,15 +10,15 @@ import math
 
 from classes.buildings.enums import BuildingType
 from classes.cards.card import Card
-from classes.cards.enums import CardName, CardType
+from classes.cards.enums import CardName
+from classes.enums import Era
 from classes.cards.industry_card import IndustryCard
 from classes.cards.location_card import LocationCard
 from classes.hand import Hand
-from classes.roads.canal import Canal
 from consts import (BUILDINGS, CANAL_PRICE, ONE_RAILROAD_COAL_PRICE,
-                    ONE_RAILROAD_PRICE, STARTING_MONEY, STARTING_ROADS,
-                    TWO_RAILROAD_BEER_PRICE, TWO_RAILROAD_COAL_PRICE,
-                    TWO_RAILROAD_PRICE)
+                    ONE_RAILROAD_PRICE, STARTING_MONEY,
+                    STARTING_ROADS, TWO_RAILROAD_BEER_PRICE,
+                    TWO_RAILROAD_COAL_PRICE, TWO_RAILROAD_PRICE)
 from python.id import id
 
 from .build_location import BuildLocation
@@ -46,9 +46,7 @@ class Player:
             building.addOwner(self)
         self.buildingDict = {}
 
-        self.roads = [
-            Canal(self) for x in range(STARTING_ROADS)
-        ]  # canals/railroads, array of Road objects
+        self.roadCount = STARTING_ROADS
         self.board.addPlayer(self)
 
         for building in self.buildings:
@@ -122,12 +120,17 @@ class Player:
         # if not, check if player can afford
         )) or (self.board.priceForCoal(coalCost) + self.board.priceForIron(ironCost) <= money)
 
-    def canAffordBuilding(self, building: Building, money:int) -> bool:
-        return money >= building.cost
+    def canAffordBuilding(self, building: Building) -> bool:
+        return self.money >= building.cost
 
     def canPlaceBuilding(
         self, building: Building, buildLocation: BuildLocation
     ) -> bool:
+        if building.onlyPhaseOne and self.board.era != Era.canal:
+            return False
+        if building.onlyPhaseTwo and self.board.era != Era.railroad:
+            return False
+
         return buildLocation.isPossibleBuild(building)
 
     def totalBuildingCost(
@@ -139,11 +142,11 @@ class Player:
             + self.board.priceForIron(ironCost)
         )
 
-    def canAffordCanal(self, money:int) -> bool:
-        return money >= CANAL_PRICE
+    def canAffordCanal(self) -> bool:
+        return self.money >= CANAL_PRICE
 
     def canPlaceCanal(self, roadLocation: RoadLocation) -> bool:
-        return not roadLocation.isBuilt and roadLocation.canBuildCanal
+        return self.board.era == Era.canal and not roadLocation.isBuilt and roadLocation.canBuildCanal
 
     def canAffordOneRailroadIndustryResources(self, roadLocation: RoadLocation) -> bool:
         for town in roadLocation.towns:
@@ -151,11 +154,11 @@ class Player:
                 return True
         return False
 
-    def canAffordOneRailroad(self, money:int) -> bool:
-        return money >= ONE_RAILROAD_PRICE
+    def canAffordOneRailroad(self) -> bool:
+        return self.money >= ONE_RAILROAD_PRICE
 
     def canPlaceOneRailroad(self, roadLocation: RoadLocation) -> bool:
-        return not roadLocation.isBuilt and roadLocation.canBuildRailroad
+        return self.board.era == Era.railroad and not roadLocation.isBuilt and roadLocation.canBuildRailroad
 
     def canAffordTwoRailroadIndustryResources(
         self, roadLocation1: RoadLocation, roadLocation2: RoadLocation
@@ -191,8 +194,8 @@ class Player:
             
         return False
     
-    def canAffordTwoRailroads(self, money) -> bool:
-        return money >= TWO_RAILROAD_PRICE
+    def canAffordTwoRailroads(self) -> bool:
+        return self.money >= TWO_RAILROAD_PRICE
 
     def canPlaceTwoRailroads(
         self, roadLocation1: RoadLocation, roadLocation2: RoadLocation
@@ -213,22 +216,40 @@ class Player:
     def canBuildBuilding(
         self, building: Building, buildLocation: BuildLocation
     ) -> bool:
+
+        if self.board.era == Era.canal:
+            # You may have a maximum of 1 Industry tile per location in Canal era
+            for buildLocation_ in buildLocation.town.buildLocations:
+                if buildLocation_.id != buildLocation.id:
+                    if buildLocation_.building and buildLocation_.building.owner.id == self.id:
+                        print("UH OH")
+                        return False
+
+        print(
+            self.canAffordBuildingIndustryResources(
+                buildLocation, building.coalCost, building.ironCost, self.money-building.cost
+            ), self.canAffordBuilding(building), self.canPlaceBuilding(building, buildLocation), building.owner == self)
         return (
             self.canAffordBuildingIndustryResources(
                 buildLocation, building.coalCost, building.ironCost, self.money-building.cost
             )
-            and self.canAffordBuilding(building, self.money)
+            and self.canAffordBuilding(building)
             and self.canPlaceBuilding(building, buildLocation)
             and building.owner == self
         )
 
     # 2 NETWORK
     def canBuildCanal(self, roadLocation: RoadLocation) -> bool:
-        return self.canAffordCanal(self.money) and self.canPlaceCanal(roadLocation)
+        return (
+            self.roadCount > 0
+            and self.canAffordCanal()
+            and self.canPlaceCanal(roadLocation)
+        )
 
     def canBuildOneRailroad(self, roadLocation: RoadLocation) -> bool:
         return (
-            self.canAffordOneRailroad(self.money)
+            self.roadCount > 0
+            and self.canAffordOneRailroad()
             and self.canPlaceOneRailroad(roadLocation)
             and self.canAffordOneRailroadIndustryResources(roadLocation)
         )
@@ -237,7 +258,8 @@ class Player:
         self, roadLocation1: RoadLocation, roadLocation2: RoadLocation
     ) -> bool:
         return (
-            self.canAffordTwoRailroads(self.money)
+            self.roadCount > 1
+            and self.canAffordTwoRailroads()
             and self.canAffordTwoRailroadIndustryResources(roadLocation1, roadLocation2)
             and self.canPlaceTwoRailroads(roadLocation1, roadLocation2)
         )

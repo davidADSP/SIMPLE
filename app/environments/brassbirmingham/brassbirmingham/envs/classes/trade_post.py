@@ -33,6 +33,7 @@ class TradePost:
         self.id = id()
         self.type = "TradePost"
         self.name = name
+        self.startingBeerAmount = beerAmount
         self.beerAmount = beerAmount
         self.moneyGained = moneyGained
         self.victoryPointsGained = victoryPointsGained
