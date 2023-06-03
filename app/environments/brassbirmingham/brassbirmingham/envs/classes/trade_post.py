@@ -37,21 +37,21 @@ class TradePost:
         self.moneyGained = moneyGained
         self.victoryPointsGained = victoryPointsGained
         self.incomeGained = incomeGained
-        self.possibleTrades = []  # list of
+        self.merchantTiles = []  # list of merchant tiles
         self.networkPoints = networkPoints
         self.canDevelop = canDevelop
         self.networks: List[RoadLocation] = []
 
     """
-    addPossibleTrade
+    addMerchantTile
     game init use only
-    trades which are possible to make, array of Building object names 'iron', 'goods', etc...
+    trades which are possible to make, array any of ['blank', 'all', 'pottery', 'cotton', 'goods']
 
-    :param possibleTrade: possibleTrade
+    :param merchantTile: merchantTile
     """
 
-    def addPossibleTrade(self, possibleTrade):
-        self.possibleTrades.append(possibleTrade)
+    def addMerchantTile(self, merchantTile: str):
+        self.merchantTiles.append(merchantTile)
 
     """
     addRoadLocation

@@ -26,12 +26,14 @@ from .buildings.building import Building
 from .buildings.market_building import MarketBuilding
 from .road_location import RoadLocation
 
+PLAYER_COLORS = ["Red", "Blue", "Green", "Yellow"]
 
 class Player:
     def __init__(self, name: str, board: Board):
         self.id = id()
         self.name = name
         self.board = board
+        self.color = PLAYER_COLORS[len(self.board.players)]
         self.hand = Hand(self.board.deck)
         self.money = STARTING_MONEY
         self.income = 10
@@ -42,11 +44,23 @@ class Player:
         )  # buildings, array of Building objects
         for building in self.buildings:
             building.addOwner(self)
+        self.buildingDict = {}
 
         self.roads = [
             Canal(self) for x in range(STARTING_ROADS)
         ]  # canals/railroads, array of Road objects
         self.board.addPlayer(self)
+
+        for building in self.buildings:
+            self.buildingDict[f"{building.name.value} {building.tier}"] = building
+
+    """
+    pay - use instead of 'player.money -= amount' since this asserts no negative values
+    :param int: amount to pay
+    """
+    def pay(self, amount: int):
+        self.money -= amount
+        assert self.money >= 0
 
     def incomeLevel(self):
         if self.income <= 10:
@@ -131,9 +145,11 @@ class Player:
     def canPlaceCanal(self, roadLocation: RoadLocation) -> bool:
         return not roadLocation.isBuilt and roadLocation.canBuildCanal
 
-    def canAffordOneRailroadIndustryResources(self) -> bool:
-        return self.board.getAvailableCoalAmount() >= ONE_RAILROAD_COAL_PRICE
-        # return self.board.isCoalAvailableFromBuildings(roadLocation.town) or self.board.isCoalAvailableFromTradePosts(roadLocation.town, ONE_RAILROAD_COAL_PRICE, self.money)
+    def canAffordOneRailroadIndustryResources(self, roadLocation: RoadLocation) -> bool:
+        for town in roadLocation.towns:
+            if self.board.getAvailableCoalAmount(town) >= ONE_RAILROAD_COAL_PRICE:
+                return True
+        return False
 
     def canAffordOneRailroad(self, money:int) -> bool:
         return money >= ONE_RAILROAD_PRICE
@@ -144,21 +160,37 @@ class Player:
     def canAffordTwoRailroadIndustryResources(
         self, roadLocation1: RoadLocation, roadLocation2: RoadLocation
     ) -> bool:
-        # todo - or for now, but may be incorrect
-        return (
-            self.board.getAvailableCoalAmount(roadLocation1) >= TWO_RAILROAD_COAL_PRICE
-            and self.board.getAvailableBeerAmount(self, roadLocation2)
-            >= TWO_RAILROAD_BEER_PRICE
-            or self.board.getAvailableCoalAmount(roadLocation2)
-            >= TWO_RAILROAD_COAL_PRICE
-            and self.board.getAvailableBeerAmount(self, roadLocation2)
-            >= TWO_RAILROAD_BEER_PRICE
-        )
+        # FIXED issue - building second road X - 1 - 2, '2' isn't "networked" to X I think?
+        # def fix second road - go one at a time func
+        road1 = False
+        road2 = False
+        for town in roadLocation1.towns:
+            if self.board.getAvailableCoalAmount(town) >= TWO_RAILROAD_COAL_PRICE and self.board.getAvailableBeerAmount(self, town) >= TWO_RAILROAD_BEER_PRICE:
+                road1 = True
+                # build tmp road (delete after)
+                roadLocation1.isBuilt = True
+                break
+        if road1:
+            for town in roadLocation2.towns:
+                if self.board.getAvailableCoalAmount(town) >= TWO_RAILROAD_COAL_PRICE and self.board.getAvailableBeerAmount(self, town) >= TWO_RAILROAD_BEER_PRICE:
+                    roadLocation1.isBuilt = False
+                    return True
 
-        # return (self.board.isCoalAvailableFromBuildings(roadLocation1.town) or self.board.isCoalAvailableFromTradePosts(roadLocation1.town, TWO_RAILROAD_COAL_PRICE, self.money)) and (self.board.isBeerAvailableFromBuildings(roadLocation1.town) or self.board.isBeerAvailableFromTradePosts(roadLocation1.town))\
-        #         or\
-        #         (self.board.isCoalAvailableFromBuildings(roadLocation2.town) or self.board.isCoalAvailableFromTradePosts(roadLocation2.town, TWO_RAILROAD_COAL_PRICE, self.money)) and (self.board.isBeerAvailableFromBuildings(roadLocation2.town) or self.board.isBeerAvailableFromTradePosts(roadLocation1.town))
-
+        for town in roadLocation2.towns:
+            if self.board.getAvailableCoalAmount(town) >= TWO_RAILROAD_COAL_PRICE and self.board.getAvailableBeerAmount(self, town) >= TWO_RAILROAD_BEER_PRICE:
+                road2 = True
+                # build tmp road (delete after)
+                roadLocation2.isBuilt = True
+                break
+        
+        if road2:
+            for town in roadLocation1.towns:
+                if self.board.getAvailableCoalAmount(town) >= TWO_RAILROAD_COAL_PRICE and self.board.getAvailableBeerAmount(self, town) >= TWO_RAILROAD_BEER_PRICE:
+                    roadLocation2.isBuilt = False
+                    return True
+            
+        return False
+    
     def canAffordTwoRailroads(self, money) -> bool:
         return money >= TWO_RAILROAD_PRICE
 
@@ -198,7 +230,7 @@ class Player:
         return (
             self.canAffordOneRailroad(self.money)
             and self.canPlaceOneRailroad(roadLocation)
-            and self.canAffordOneRailroadIndustryResources()
+            and self.canAffordOneRailroadIndustryResources(roadLocation)
         )
 
     def canBuildTwoRailroads(
