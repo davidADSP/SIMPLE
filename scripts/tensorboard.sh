@@ -1,1 +1,1 @@
-docker-compose exec app tensorboard --logdir ./logs
+docker-compose exec app tensorboard --logdir ./logs --bind_all

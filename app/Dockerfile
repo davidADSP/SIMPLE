@@ -1,4 +1,4 @@
-FROM ubuntu:bionic-20200219 as base
+FROM ubuntu:jammy as base
 
 RUN apt-get update
 RUN apt-get -y install ssh
