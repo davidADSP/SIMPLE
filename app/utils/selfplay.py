@@ -1,21 +1,20 @@
 import os
 import numpy as np
 import random
+import logging as logger
 
 from utils.files import load_model, load_all_models, get_best_model_name
 from utils.agents import Agent
 
-import config
-
-from stable_baselines import logger
 
 def selfplay_wrapper(env):
     class SelfPlayEnv(env):
         # wrapper over the normal single player env, but loads the best self play model
-        def __init__(self, opponent_type, verbose):
+        def __init__(self, opponent_type, verbose, device):
             super(SelfPlayEnv, self).__init__(verbose)
+            self.device = device
             self.opponent_type = opponent_type
-            self.opponent_models = load_all_models(self)
+            self.opponent_models = load_all_models(self, device)
             self.best_model_name = get_best_model_name(self.name)
 
         def setup_opponents(self):
@@ -25,7 +24,7 @@ def selfplay_wrapper(env):
                 # incremental load of new model
                 best_model_name = get_best_model_name(self.name)
                 if self.best_model_name != best_model_name:
-                    self.opponent_models.append(load_model(self, best_model_name ))
+                    self.opponent_models.append(load_model(self, best_model_name, self.device ))
                     self.best_model_name = best_model_name
 
                 if self.opponent_type == 'random':
@@ -60,14 +59,14 @@ def selfplay_wrapper(env):
                 pass
 
 
-        def reset(self):
-            super(SelfPlayEnv, self).reset()
+        def reset(self, seed = None):
+            _, info = super(SelfPlayEnv, self).reset(seed)
             self.setup_opponents()
 
             if self.current_player_num != self.agent_player_num:   
                 self.continue_game()
 
-            return self.observation
+            return self.observation, info
 
         @property
         def current_agent(self):
@@ -77,22 +76,24 @@ def selfplay_wrapper(env):
             observation = None
             reward = None
             done = None
+            truncated = False
+            info = None
 
             while self.current_player_num != self.agent_player_num:
                 self.render()
                 action = self.current_agent.choose_action(self, choose_best_action = False, mask_invalid_actions = False)
-                observation, reward, done, _ = super(SelfPlayEnv, self).step(action)
+                observation, reward, done, truncated, info = super(SelfPlayEnv, self).step(action)
                 logger.debug(f'Rewards: {reward}')
                 logger.debug(f'Done: {done}')
                 if done:
                     break
 
-            return observation, reward, done, None
+            return observation, reward, done, truncated, info
 
 
         def step(self, action):
             self.render()
-            observation, reward, done, _ = super(SelfPlayEnv, self).step(action)
+            observation, reward, done, truncated, info = super(SelfPlayEnv, self).step(action)
             logger.debug(f'Action played by agent: {action}')
             logger.debug(f'Rewards: {reward}')
             logger.debug(f'Done: {done}')
@@ -100,7 +101,7 @@ def selfplay_wrapper(env):
             if not done:
                 package = self.continue_game()
                 if package[0] is not None:
-                    observation, reward, done, _ = package
+                    observation, reward, done, truncated, info = package
 
 
             agent_reward = reward[self.agent_player_num]
@@ -109,6 +110,6 @@ def selfplay_wrapper(env):
             if done:
                 self.render()
 
-            return observation, agent_reward, done, {} 
+            return observation, agent_reward, done, truncated, info
 
     return SelfPlayEnv

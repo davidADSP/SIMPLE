@@ -1,5 +1,5 @@
 
-
+import logging as logger
 import os
 import sys
 import random
@@ -7,17 +7,13 @@ import csv
 import time
 import numpy as np
 
-from mpi4py import MPI
 
 from shutil import rmtree
-from stable_baselines.ppo1 import PPO1
-from stable_baselines.common.policies import MlpPolicy
+from sb3_contrib import MaskablePPO as PPO1
 
 from utils.register import get_network_arch
 
 import config
-
-from stable_baselines import logger
 
 
 def write_results(players, game, games, episode_length):
@@ -40,8 +36,14 @@ def write_results(players, game, games, episode_length):
         writer = csv.DictWriter(csvfile, fieldnames=out.keys())
         writer.writerow(out)
 
+def list_model(env):
+    models = list()
+    for f in os.listdir(os.path.join(config.MODELDIR, env.name)):
+        if not f.startswith("_") and f.endswith(".zip"):
+            models.append(f[:-4])
+    return models
 
-def load_model(env, name):
+def load_model(env, name, device):
 
     filename = os.path.join(config.MODELDIR, env.name, name)
     if os.path.exists(filename):
@@ -49,7 +51,7 @@ def load_model(env, name):
         cont = True
         while cont:
             try:
-                ppo_model = PPO1.load(filename, env=env)
+                ppo_model = PPO1.load(filename, env=env, device=device)
                 cont = False
             except Exception as e:
                 time.sleep(5)
@@ -59,15 +61,9 @@ def load_model(env, name):
         cont = True
         while cont:
             try:
-                
-                rank = MPI.COMM_WORLD.Get_rank()
-                if rank == 0:
-                    ppo_model = PPO1(get_network_arch(env.name), env=env)
-                    logger.info(f'Saving base.zip PPO model...')
-                    ppo_model.save(os.path.join(config.MODELDIR, env.name, 'base.zip'))
-                else:
-
-                    ppo_model = PPO1.load(os.path.join(config.MODELDIR, env.name, 'base.zip'), env=env)
+                ppo_model = PPO1(get_network_arch(env.name), env=env)
+                logger.info(f'Saving base.zip PPO model...')
+                ppo_model.save(os.path.join(config.MODELDIR, env.name, 'base.zip'))
 
                 cont = False
             except IOError as e:
@@ -82,12 +78,12 @@ def load_model(env, name):
     return ppo_model
 
 
-def load_all_models(env):
+def load_all_models(env, device):
     modellist = [f for f in os.listdir(os.path.join(config.MODELDIR, env.name)) if f.startswith("_model")]
     modellist.sort()
-    models = [load_model(env, 'base.zip')]
+    models = [load_model(env, 'base.zip', device)]
     for model_name in modellist:
-        models.append(load_model(env, name = model_name))
+        models.append(load_model(env, name = model_name, device=device))
     return models
 
 
@@ -117,7 +113,7 @@ def get_model_stats(filename):
     return generation, timesteps, best_rules_based, best_reward
 
 
-def reset_logs(model_dir):
+def reset_logs():
     try:
         filelist = [ f for f in os.listdir(config.LOGDIR) if f not in ['.gitignore']]
         for f in filelist:

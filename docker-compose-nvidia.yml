@@ -15,4 +15,11 @@ services:
         container_name: selfplay
         cap_add:
             - SYS_PTRACE
+        deploy:
+          resources:
+            reservations:
+              devices:
+                - driver: nvidia
+                  count: 1
+                  capabilities: [gpu]
 
