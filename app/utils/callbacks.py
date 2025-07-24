@@ -1,16 +1,15 @@
 import os
 import numpy as np
 from shutil import copyfile
-from mpi4py import MPI
 
-from stable_baselines.common.callbacks import EvalCallback
-from stable_baselines import logger
+from sb3_contrib.common.maskable.callbacks import MaskableEvalCallback
+import logging as logger
 
 from utils.files import get_best_model_name, get_model_stats
 
 import config
 
-class SelfPlayCallback(EvalCallback):
+class SelfPlayCallback(MaskableEvalCallback):
   def __init__(self, opponent_type, threshold, env_name, *args, **kwargs):
     super(SelfPlayCallback, self).__init__(*args, **kwargs)
     self.opponent_type = opponent_type
@@ -34,44 +33,34 @@ class SelfPlayCallback(EvalCallback):
 
       result = super(SelfPlayCallback, self)._on_step() #this will set self.best_mean_reward to the reward from the evaluation as it's previously -np.inf
 
-      list_of_rewards = MPI.COMM_WORLD.allgather(self.best_mean_reward)
-      av_reward = np.mean(list_of_rewards)
-      std_reward = np.std(list_of_rewards)
-      av_timesteps = np.mean(MPI.COMM_WORLD.allgather(self.num_timesteps))
-      total_episodes = np.sum(MPI.COMM_WORLD.allgather(self.n_eval_episodes))
-
       if self.callback is not None:
-        rules_based_rewards = MPI.COMM_WORLD.allgather(self.callback.best_mean_reward)
-        av_rules_based_reward = np.mean(rules_based_rewards)
+        rules_based_rewards = self.callback.best_mean_reward
 
-      rank = MPI.COMM_WORLD.Get_rank()
-      if rank == 0:
-        logger.info("Eval num_timesteps={}, episode_reward={:.2f} +/- {:.2f}".format(self.num_timesteps, av_reward, std_reward))
-        logger.info("Total episodes ran={}".format(total_episodes))
+      logger.info("Eval num_timesteps={}, episode_reward={:.2f}".format(self.num_timesteps, self.best_mean_reward))
+      logger.info("Total episodes ran={}".format(self.n_eval_episodes))
 
       #compare the latest reward against the threshold
-      if result and av_reward > self.threshold:
+      if result and self.best_mean_reward > self.threshold:
         self.generation += 1
-        if rank == 0: #write new files
-          logger.info(f"New best model: {self.generation}\n")
+        logger.info(f"New best model: {self.generation}\n")
 
-          generation_str = str(self.generation).zfill(5)
-          av_rewards_str = str(round(av_reward,3))
+        generation_str = str(self.generation).zfill(5)
+        rewards_str = str(round(self.best_mean_reward,3))
 
-          if self.callback is not None:
-            av_rules_based_reward_str = str(round(av_rules_based_reward,3))
-          else:
-            av_rules_based_reward_str = str(0)
-          
-          source_file = os.path.join(config.TMPMODELDIR, f"best_model.zip") # this is constantly being written to - not actually the best model
-          target_file = os.path.join(self.model_dir,  f"_model_{generation_str}_{av_rules_based_reward_str}_{av_rewards_str}_{str(self.base_timesteps + self.num_timesteps)}_.zip")
-          copyfile(source_file, target_file)
-          target_file = os.path.join(self.model_dir,  f"best_model.zip")
-          copyfile(source_file, target_file)
+        if self.callback is not None:
+          rules_based_reward_str = str(round(rules_based_rewards,3))
+        else:
+          rules_based_reward_str = str(0)
+        
+        source_file = os.path.join(config.TMPMODELDIR, f"best_model.zip") # this is constantly being written to - not actually the best model
+        target_file = os.path.join(self.model_dir,  f"_model_{generation_str}_{rules_based_reward_str}_{rewards_str}_{str(self.base_timesteps + self.num_timesteps)}_.zip")
+        copyfile(source_file, target_file)
+        target_file = os.path.join(self.model_dir,  f"best_model.zip")
+        copyfile(source_file, target_file)
 
         # if playing against a rules based agent, update the global best reward to the improved metric
         if self.opponent_type == 'rules':
-          self.threshold  = av_reward
+          self.threshold  = self.best_mean_reward
         
       #reset best_mean_reward because this is what we use to extract the rewards from the latest evaluation by each agent
       self.best_mean_reward = -np.inf

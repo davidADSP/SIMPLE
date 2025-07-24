@@ -1,0 +1,20 @@
+name: Publish frouge image
+on:
+  push:
+    branches:
+      - 'main'
+      - 'multiple-upgrades'
+
+jobs:
+  publish-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: build
+        run: |
+          docker build . -t zorgluf/simple-play-frouge:latest -f app/Dockerfile_play_frouge
+      - name: publish
+        run: |
+          docker login -u zorgluf -p ${{ secrets.DOCKER_HUB_TOKEN }}
+          docker push zorgluf/simple-play-frouge:latest

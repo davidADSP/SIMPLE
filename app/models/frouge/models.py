@@ -1,124 +1,178 @@
-import numpy as np
-import tensorflow as tf
-tf.get_logger().setLevel('INFO')
-tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+from typing import Callable, Dict, List, Optional, Tuple, Type, Union
+from collections import OrderedDict
 
-from tensorflow.keras.layers import BatchNormalization, Activation, Flatten, Add, Dense, Multiply, Concatenate, Lambda, Conv2D, Conv3D
-import tensorflow.keras.backend as K
-from stable_baselines.common.policies import ActorCriticPolicy
-from stable_baselines.common.distributions import CategoricalProbabilityDistribution
+from gymnasium import spaces
+
+from torch import nn, cuda
+from torch import reshape, flatten, cat, add, Tensor, permute
+
+from sb3_contrib.common.maskable.policies import MaskableActorCriticPolicy
 
 ACTIONS = 29
+MAX_BOARD_SIZE = 120
+BOARD_CELL_DIM_SIZE = 17
 FEATURE_SIZE = 64
+OBS_SIZE = 6204
+
+class CustomNetwork(nn.Module):
+    """
+    Custom network for policy and value function.
+    It receives as input the features extracted by the features extractor.
+
+    :param feature_dim: dimension of the features extracted with the features_extractor (e.g. features from a CNN)
+    :param last_layer_dim_pi: (int) number of units for the last layer of the policy network
+    :param last_layer_dim_vf: (int) number of units for the last layer of the value network
+    """
+
+    def __init__(
+        self,
+        feature_dim: int,
+        last_layer_dim_pi: int = 64,
+        last_layer_dim_vf: int = 64,
+    ):
+        super().__init__()
+
+        # IMPORTANT:
+        # Save output dimensions, used to create the distributions
+        self.latent_dim_pi = ACTIONS
+        self.latent_dim_vf = 1
+
+        self.resnet_extractor_board = nn.Sequential(
+            convolutional(BOARD_CELL_DIM_SIZE,BOARD_CELL_DIM_SIZE, kernel_size=9, strides=1, padding=4),
+            #convolutional(BOARD_CELL_DIM_SIZE,int(FEATURE_SIZE/2), kernel_size=9, strides=1, padding=4),
+            #convolutional(int(FEATURE_SIZE/2), BOARD_CELL_DIM_SIZE, kernel_size=9, strides=1, padding=4),
+        )
+        self.resnet_extractor_final = dense(OBS_SIZE, FEATURE_SIZE)
+        self.residual = nn.Sequential(
+            #dense(FEATURE_SIZE, FEATURE_SIZE),
+            dense(FEATURE_SIZE,FEATURE_SIZE, activation = None)
+        )
+        self.policy_head = nn.Sequential(
+            dense(FEATURE_SIZE, FEATURE_SIZE),
+            dense(FEATURE_SIZE, ACTIONS, batch_norm = True, activation = None)
+        )
+        self.value_head_first = dense(FEATURE_SIZE, FEATURE_SIZE)
+        self.value_head_f = dense(FEATURE_SIZE, 1, batch_norm = False, activation = 'tanh')
+
+    def forward(self, features: Tensor) -> Tuple[Tensor, Tensor]:
+        """
+        :return: (th.Tensor, th.Tensor) latent_policy, latent_value of the specified network.
+            If all layers are shared, then ``latent_policy == latent_value``
+        """
+        return self.forward_actor(features), self.forward_critic(features)
+    
+    def _common_forward(self, features: Tensor) -> Tensor:
+
+        extracted_features = self.forward_resnet_extractor(features)
+
+        return extracted_features
+
+    def forward_actor(self, features: Tensor) -> Tensor:
+        # Policy network
+        extracted_features = self._common_forward(features)
+        policy_net = self.forward_policy_head(extracted_features)
+        return policy_net
+
+    def forward_critic(self, features: Tensor) -> Tensor:
+        # Value network
+        extracted_features = self._common_forward(features)
+        value_net = self.forward_value_head(extracted_features)
+        return value_net
+
+    def forward_resnet_extractor(self, y, **kwargs):
+
+        board, cards = split_input(y, int(y.shape[1])-(MAX_BOARD_SIZE*3*BOARD_CELL_DIM_SIZE))
+        board = reshape(board,[ -1, MAX_BOARD_SIZE, 3, BOARD_CELL_DIM_SIZE ])
+        board = permute(board,(0,3,1,2))
+        
+        board = self.resnet_extractor_board(board)
+        board = permute(board,(0,2,3,1))
+        board = flatten(board,1)
+
+        y = cat([board, cards],1)
+        y = self.resnet_extractor_final(y)
+
+        shortcut = y
+
+        y = self.residual(y)
+        y = add(shortcut, y)
+
+        y = nn.ReLU()(y)
+
+        return y
+    
+    def forward_policy_head(self, y):
+
+        policy = self.policy_head(y)
+        return policy
+    
+    def forward_value_head(self, y):
+
+        y = self.value_head_first(y)
+        vf = self.value_head_f(y)
+        return vf
 
 
-class CustomPolicy(ActorCriticPolicy):
-    def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=False, **kwargs):
-        super(CustomPolicy, self).__init__(sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=reuse, scale=True)
+class CustomPolicy(MaskableActorCriticPolicy):
+    def __init__(
+        self,
+        observation_space: spaces.Space,
+        action_space: spaces.Space,
+        lr_schedule: Callable[[float], float],
+        *args,
+        **kwargs,
+    ):
+        # Disable orthogonal initialization
+        kwargs["ortho_init"] = False
+        super().__init__(
+            observation_space,
+            action_space,
+            lr_schedule,
+            # Pass remaining arguments to base class
+            *args,
+            **kwargs,
+        )
 
-        with tf.variable_scope("model", reuse=reuse):
 
-            obs, legal_actions = split_input(self.processed_obs, ACTIONS)
-
-            extracted_features = resnet_extractor(obs, **kwargs)
-
-            self._policy = policy_head(extracted_features, legal_actions)
-            self._value_fn, self.q_value = value_head(extracted_features)
-            self._proba_distribution  = CategoricalProbabilityDistribution(self._policy)
-
-        self._setup_init()
-
-    def step(self, obs, state=None, mask=None, deterministic=False):
-        if deterministic:
-            action, value, neglogp = self.sess.run([self.deterministic_action, self.value_flat, self.neglogp],
-                                                   {self.obs_ph: obs})
-        else:
-            action, value, neglogp = self.sess.run([self.action, self.value_flat, self.neglogp],
-                                                   {self.obs_ph: obs})
-        return action, value, self.initial_state, neglogp
-
-    def proba_step(self, obs, state=None, mask=None):
-        return self.sess.run(self.policy_proba, {self.obs_ph: obs})
-
-    def value(self, obs, state=None, mask=None):
-        return self.sess.run(self.value_flat, {self.obs_ph: obs})
+    def _build_mlp_extractor(self) -> None:
+        self.mlp_extractor = CustomNetwork(self.features_dim)
 
 
 def split_input(processed_obs, split):
-    obs = processed_obs[...,:-split]
-    legal_actions = K.mean(processed_obs[...,-split:], axis = (1,2))
-    return  obs, legal_actions 
+    obs_1 = processed_obs[...,:-split]
+    obs_2 = processed_obs[...,-split:]
+    return  obs_1, obs_2 
 
 
-def value_head(y):
-    y = convolutional(y, 4, (1,1), batch_norm = False)
-    y = Flatten()(y)
-    y = dense(y,FEATURE_SIZE, batch_norm = False)
-
-    vf = dense(y, 1, batch_norm = False, activation = 'tanh', name='vf')
-    q = dense(y, ACTIONS, batch_norm = False, activation = 'tanh', name='q')
-    return vf, q
-
-
-def policy_head(y, legal_actions):
-    y = convolutional(y, 1, (1,1), batch_norm = False)
-    y = Flatten()(y)
-    y = dense(y,FEATURE_SIZE, batch_norm = False)
-
-    policy = dense(y, ACTIONS, batch_norm = False, activation = None, name='pi')
-    
-    mask = Lambda(lambda x: (1 - x) * -1e8)(legal_actions)   
-    
-    policy = Add()([policy, mask])
-    return policy
-
-
-def resnet_extractor(y, **kwargs):
-
-    y = convolutional(y, FEATURE_SIZE, (3,3), batch_norm = False, strides = (2,1))
-    y = residual(y, FEATURE_SIZE * 2, (3,3), batch_norm = False, strides = (2,1))
-    return y
-
-
-def convolutional(y, filters, kernel_size, batch_norm = False, activation = 'relu', strides = (1,1)):
-    y = Conv2D(filters, kernel_size=kernel_size, strides=strides, padding='same')(y)
+def convolutional(in_channels, out_channels, kernel_size, batch_norm = False, activation = 'relu', strides = (1,1), padding= 1):
+    out = nn.Sequential(nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, stride=strides, padding=padding))
     if batch_norm:
-        y = BatchNormalization(momentum = 0.9)(y)
-    if activation:
-        y = Activation('relu')(y)
-    return y
-
-
-def residual(y, filters, kernel_size, batch_norm, strides):
-    shortcut = convolutional(y, filters, kernel_size = (1,1), batch_norm = False, strides = strides)
-    shortcut = convolutional(shortcut, filters, kernel_size = (1,1), batch_norm = False, strides = strides)
-
-    y = convolutional(y,filters, kernel_size=kernel_size, batch_norm = batch_norm, strides = strides)
-
-    y = convolutional(y,filters, kernel_size=kernel_size, batch_norm = batch_norm, activation=None, strides = strides)
-    y = Add()([shortcut, y])
-
-    y = Activation('relu')(y)
-
-    return y
-
-
-def dense(y, filters, batch_norm = False, activation = 'relu', name = None):
-
-    if batch_norm or activation:
-        y = Dense(filters)(y)
-    else:
-        y = Dense(filters, name = name)(y)
-    
-    if batch_norm:
-        if activation:
-            y = BatchNormalization(momentum = 0.9)(y)
+        out.append(nn.BatchNorm1d(momentum = 0.9))
+    if activation != None:
+        if activation == "relu":
+            out.append(nn.ReLU())
+        elif activation == "tanh":
+            out.append(nn.Tanh())
         else:
-            y = BatchNormalization(momentum = 0.9, name = name)(y)
+            raise Exception(f"Unknown activation layer {activation}")
+    return out
 
-    if activation:
-        y = Activation(activation, name = name)(y)
+
+def dense(in_size, out_size, batch_norm = False, activation = 'relu'):
+
+    out = nn.Sequential(nn.Linear(in_size,out_size))
     
-    return y
+    if batch_norm:
+        out.append(nn.BatchNorm1d(out_size, momentum=0.9))
+
+    if activation != None:
+        if activation == "relu":
+            out.append(nn.ReLU())
+        elif activation == "tanh":
+            out.append(nn.Tanh())
+        else:
+            raise Exception(f"Unknown activation layer {activation}")
+    
+    return out
 
 

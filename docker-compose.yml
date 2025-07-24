@@ -1,5 +1,3 @@
-version: '3.6'
-
 services:
     app:
         build:
@@ -8,11 +6,11 @@ services:
         ports:
             - 8899:8899
             - 6006:6006
+            - 8080:8080
         volumes:
             - ./app/:/app/
         tty: true
         container_name: selfplay
         cap_add:
             - SYS_PTRACE
-        
 

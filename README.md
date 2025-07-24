@@ -99,13 +99,21 @@ Install [Docker](https://github.com/davidADSP/SIMPLE/issues) and [Docker Compose
    ```
 2. Build the image and 'up' the container.
    ```sh
-   docker-compose up -d
+   docker compose up -d
+   ```
+   or
+   ```sh
+   docker compose -f docker-compose-nvidia.yml up -d
    ```
 3. Choose an environment to install in the container (`tictactoe`, `connect4`, `sushigo`, `geschenkt`, `butterfly`, and `flamme rouge` are currently implemented)
    ```sh
    bash ./scripts/install_env.sh sushigo
    ```
 
+Build standalone docker play images :
+  ```sh
+  docker build . -t simple-play-frouge -f app/Dockerfile_play_frouge
+  ```
 ---
 <!-- TUTORIAL -->
 ## Tutorial
@@ -124,7 +132,12 @@ This entrypoint allows you to play against a trained AI, pit two AIs against eac
 
 For example, try the following command to play against a baseline random model in the Sushi Go environment.
    ```sh
-   docker-compose exec app python3 test.py -d -g 1 -a base base human -e sushigo 
+   docker compose exec app python3 test.py -d -g 1 -a base base human -e sushigo 
+   ```
+
+To start web-gui mode :
+  ```sh
+   docker compose exec app python3 test.py -rm human_web -g 1 -a base base human base base -e frouge 
    ```
 
 #### `train.py` 
@@ -133,8 +146,12 @@ This entrypoint allows you to start training the AI using selfplay PPO. The unde
 
 For example, you can start training the agent to learn how to play SushiGo with the following command:
    ```sh
-   docker-compose exec app python3 train.py -r -e sushigo 
+   docker compose exec app python3 train.py -r -e sushigo 
    ```
+Or on nvidia GPU :
+   ```sh
+   docker compose -f docker-compose-nvidia.yml exec app python3 train.py -r -e sushigo 
+   ``` 
 
 After 30 or 40 iterations the process should have achieved above the default threshold score of 0.2 and will output a new `best_model.zip` to the `/zoo/sushigo` folder. 
 
@@ -143,7 +160,7 @@ Training runs until you kill the process manually (e.g. with Ctrl-C), so do that
 You can now use the `test.py` entrypoint to play 100 games silently between the current `best_model.zip` and the random baselines model as follows:
 
   ```sh
-  docker-compose exec app python3 test.py -g 100 -a best_model base base -e sushigo 
+  docker compose exec app python3 test.py -g 100 -a best_model base base -e sushigo 
   ```
 
 You should see that the best_model scores better than the two baseline model opponents. 
@@ -154,7 +171,7 @@ Played 100 games: {'best_model_btkce': 31.0, 'base_sajsi': -15.5, 'base_poqaj': 
 You can continue training the agent by dropping the `-r` reset flag from the `train.py` entrypoint arguments - it will just pick up from where it left off.
 
    ```sh
-   docker-compose exec app python3 train.py -e sushigo 
+   docker compose exec app python3 train.py -e sushigo 
    ```
 
 Congratulations, you've just completed one training cycle for the game Sushi Go! The PPO agent will now have to work out a way to beat the model it has just created...

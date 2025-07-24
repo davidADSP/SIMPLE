@@ -1,16 +1,6 @@
-FROM ubuntu:bionic-20200219 as base
+FROM ubuntu:jammy as base
 
-RUN apt-get update
-RUN apt-get -y install ssh
-RUN apt-get -y install python3-pip
-RUN apt-get -y install htop
-RUN apt-get -y install libpq-dev
-
-RUN apt-get update 
-RUN apt-get -y install cmake libopenmpi-dev python3-dev zlib1g-dev libgl1-mesa-dev
-
-RUN pip3 install --upgrade pip
-RUN pip3 install --upgrade setuptools
+RUN apt-get -y update && apt-get -y install python3-pip htop libpq-dev cmake libopenmpi-dev python3-dev zlib1g-dev libgl1-mesa-dev
 
 RUN useradd -ms /bin/bash selfplay
 USER selfplay
@@ -19,7 +9,8 @@ WORKDIR /app
 
 
 COPY --chown=selfplay:selfplay ./app/requirements.txt /app
-RUN pip3 install -r /app/requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r /app/requirements.txt
 
 COPY --chown=selfplay:selfplay ./app .
 

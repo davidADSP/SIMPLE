@@ -1,0 +1,19 @@
+FROM python:3.10
+
+EXPOSE 8080
+
+RUN useradd -ms /bin/bash selfplay
+USER selfplay
+ENV PATH="/home/selfplay/.local/bin:${PATH}"
+WORKDIR /app
+
+COPY --chown=selfplay:selfplay ./app .
+RUN rm -rf ./app/zoo
+COPY --chown=selfplay:selfplay ./app/zoo/pretrained ./zoo/pretrained
+
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.python.org/simple
+RUN pip install --no-cache-dir -e ./environments/frouge
+
+CMD python3 test.py -rm human_web -g 1 -a best_model best_model human best_model best_model -e frouge -wa 0
+#CMD bash
